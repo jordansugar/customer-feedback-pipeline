@@ -1,0 +1,3068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --border: #e1e4e8;
+    --text: #1a1a2e;
+    --text-muted: #6b7280;
+    --accent: #5e6ad2;
+    --accent-light: #eef0fb;
+    --green: #10b981;
+    --red: #ef4444;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --header-height: 49px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: var(--header-height);
+  }
+  .header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot.connected { background: var(--green); }
+  .dot.disconnected { background: var(--text-muted); }
+  #cache-label { font-size: 11px; color: #9ca3af; }
+
+  /* ── Buttons ── */
+  .btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { background: #4a56c4; }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 9;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .filter-group > span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-right: 2px;
+    white-space: nowrap;
+  }
+  .filter-btn {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+
+  #roadmap-search {
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    width: 180px;
+  }
+  #roadmap-search:focus { border-color: var(--accent); }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #filter-summary {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Main content ── */
+  .roadmap-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* ── Loading / error / empty ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  .spinner-sm {
+    width: 13px; height: 13px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-banner {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: var(--red);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── Setup screen ── */
+  .setup-screen {
+    max-width: 420px;
+    margin: 80px auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .setup-screen .logo { font-size: 32px; margin-bottom: 16px; }
+  .setup-screen h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .setup-screen p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+  .setup-screen input {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .setup-screen input:focus { border-color: var(--accent); }
+  .setup-screen .btn { width: 100%; padding: 10px; font-size: 14px; }
+  .hidden { display: none !important; }
+
+  /* ── Toast ── */
+  #toast-container {
+    position: fixed; bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+    z-index: 300; pointer-events: none;
+  }
+  .toast {
+    background: #1a1a2e; color: #fff; font-size: 13px;
+    padding: 10px 14px 10px 18px; border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    display: flex; align-items: center; gap: 10px;
+    pointer-events: all; max-width: 380px;
+    opacity: 0; transform: translateX(12px);
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast-dismiss {
+    background: none; border: none; color: rgba(255,255,255,.6);
+    cursor: pointer; font-size: 15px; padding: 0 2px; line-height: 1;
+    flex-shrink: 0;
+  }
+  .toast-dismiss:hover { color: #fff; }
+
+  /* ── Status badges ── */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+
+  /* ── Chevron ── */
+  .chevron {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform .2s;
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+  }
+  .chevron.collapsed { transform: rotate(-90deg); }
+
+  /* ── Initiative block ── */
+  .initiative-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .initiative-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    cursor: pointer;
+    background: #f5f6ff;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+    transition: background .15s;
+  }
+  .initiative-header:hover { background: #eef0fb; }
+  .initiative-header.collapsed { border-bottom: none; }
+
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity .15s;
+    user-select: none;
+  }
+  .initiative-header:hover .drag-handle,
+  .sub-initiative-header:hover .drag-handle { opacity: 0.5; }
+  .drag-handle:hover { opacity: 1 !important; }
+  .drag-handle:active { cursor: grabbing; }
+  .initiative-block.drag-over-top,
+  .sub-initiative-block.drag-over-top    { border-top: 2px solid var(--accent); }
+  .initiative-block.drag-over-bottom,
+  .sub-initiative-block.drag-over-bottom { border-bottom: 2px solid var(--accent); }
+  .initiative-block.dragging,
+  .sub-initiative-block.dragging { opacity: 0.4; }
+  .project-card.drag-over-top    { border-top: 2px solid var(--accent); }
+  .project-card.drag-over-bottom { border-bottom: 2px solid var(--accent); }
+  .project-card.dragging         { opacity: 0.4; }
+
+  .initiative-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .initiative-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .target-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .target-date.overdue { color: var(--red); font-weight: 600; }
+
+  .project-count-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid #d0d5f5;
+    white-space: nowrap;
+  }
+
+  .initiative-body {
+    padding: 10px 16px 12px 24px;
+  }
+  .initiative-body.collapsed { display: none; }
+
+  /* No projects message */
+  .no-projects-msg {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 8px 4px;
+  }
+
+  /* ── Initiative picker dropdown ── */
+  .init-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 280px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    z-index: 50;
+  }
+  .init-picker-header {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .init-picker-header input {
+    flex: 1;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .init-picker-header input:focus { border-color: var(--accent); }
+  .init-picker-clear {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .init-picker-clear:hover { color: var(--red); border-color: var(--red); }
+  #init-picker-list {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .init-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    user-select: none;
+  }
+  .init-picker-item:last-child { border-bottom: none; }
+  .init-picker-item:hover { background: var(--accent-light); }
+  .init-picker-item input[type=checkbox] { accent-color: var(--accent); flex-shrink: 0; }
+  .init-picker-item .item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .init-picker-item .item-badge { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+
+  /* ── Flat view direct project card ── */
+  .flat-project-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .flat-project-card .initiative-header {
+    background: var(--surface);
+    border-bottom: none;
+    padding: 10px 18px;
+  }
+  .flat-project-card .initiative-header:hover { background: #f9fafb; }
+  .flat-project-card .project-type-tag {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: #f3f4f6;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: .02em;
+  }
+
+  /* ── Flat view parent label ── */
+  .parent-label {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+
+  /* ── Sub-initiative ── */
+  .sub-initiative-block {
+    border: 1px solid #d0d5f5;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 7px;
+  }
+  .sub-initiative-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    background: #eef0fb;
+    border-bottom: 1px solid #d0d5f5;
+    user-select: none;
+    transition: background .15s;
+  }
+  .sub-initiative-header:hover { background: #e3e6f8; }
+  .sub-initiative-header.collapsed { border-bottom: none; }
+  .sub-initiative-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sub-initiative-body {
+    padding: 8px 12px 10px 24px;
+    background: #f9f9ff;
+  }
+  .sub-initiative-body.collapsed { display: none; }
+
+  /* ── Project card ── */
+  .project-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 7px;
+  }
+  .project-card:last-child { margin-bottom: 0; }
+
+  .project-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: #fafafa;
+  }
+
+  .project-name-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .project-name-link:hover { color: var(--accent); text-decoration: underline; }
+
+  .project-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .team-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: #f3f4f6;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+
+  /* ── Issue rows ── */
+  .project-issues {
+    border-top: 1px solid #f3f4f6;
+    padding: 2px 0 6px 28px;
+  }
+  .project-issues.collapsed { display: none; }
+
+  .issue-loading {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .issue-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 14px 5px 0;
+    border-bottom: 1px solid #f9fafb;
+    font-size: 12px;
+  }
+  .issue-row:last-child { border-bottom: none; }
+
+  .state-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .issue-identifier {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .issue-identifier:hover { text-decoration: underline; }
+
+  .issue-title {
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .issue-title.done { color: var(--text-muted); text-decoration: line-through; }
+
+  .issue-state-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .assignee-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .assignee-chip img {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .assignee-initials {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .issue-due {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .issue-due.overdue { color: var(--red); }
+
+  .load-more-btn {
+    font-size: 12px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 6px 0;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding-left: 0;
+  }
+  .load-more-btn:hover { text-decoration: underline; }
+
+  .no-issues-msg {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 8px 0;
+  }
+
+  /* ── Flat sections ── */
+  .flat-section { margin-bottom: 24px; }
+  .flat-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 2px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  .flat-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    flex: 1;
+  }
+  .flat-section-count { font-size: 11px; color: #9ca3af; }
+  .flat-section-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+  .flat-section-action-btn:hover { background: #f3f4f6; color: #374151; }
+  .flat-section-unsectioned .flat-section-title { color: #9ca3af; }
+  .flat-section-empty-hint {
+    font-size: 12px;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 10px 0 4px;
+  }
+  .add-section-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    font-size: 13px;
+    background: none;
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6b7280;
+    width: 100%;
+    text-align: left;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+  .add-section-btn:hover { border-color: #9ca3af; color: #374151; background: #f9fafb; }
+  .section-picker-btn {
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background: none;
+    color: #d1d5db;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.4;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .section-picker-btn:hover { border-color: #e5e7eb; background: #f3f4f6; color: #6b7280; }
+  .section-picker-btn.assigned { color: #a5b4fc; }
+  .section-picker-btn.assigned:hover { border-color: #c7d2fe; background: #eef2ff; color: #4f46e5; }
+  .section-picker-dropdown {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    z-index: 500;
+    min-width: 180px;
+    padding: 4px;
+  }
+  .section-picker-option {
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #374151;
+  }
+  .section-picker-option:hover { background: #f3f4f6; }
+  .section-picker-option.active { background: #eef2ff; color: #4f46e5; font-weight: 600; }
+  .section-picker-option.muted { color: #9ca3af; }
+  .section-picker-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 4px 0;
+  }
+  .section-picker-new {
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #4f46e5;
+  }
+  .section-picker-new:hover { background: #eef2ff; }
+
+  /* ── Timeline View ──────────────────────────────────────────────────────── */
+  .tl-wrapper { position: relative; overflow-x: auto; user-select: none; }
+  .tl-nav {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tl-nav-range { font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+
+  .tl-header {
+    display: flex; background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    position: sticky; z-index: 8;
+  }
+  .tl-header-corner {
+    flex-shrink: 0; border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tl-months { display: flex; }
+  .tl-month-cell {
+    flex-shrink: 0; padding: 6px 4px;
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    border-right: 1px solid var(--border);
+    text-align: center; background: var(--surface);
+    white-space: nowrap; overflow: hidden;
+  }
+  .tl-month-cell.tl-cur-month { color: var(--accent); background: var(--accent-light); }
+
+  .tl-lane { border-bottom: 2px solid var(--border); }
+  .tl-lane-hdr { display: flex; align-items: center; cursor: pointer; }
+  .tl-lane-hdr-bg { flex-shrink: 0; height: 36px; position: relative; }
+  .tl-lane-label { font-weight: 600; font-size: 13px; gap: 6px; }
+
+  .tl-item-row { display: flex; align-items: stretch; border-bottom: 1px solid #f3f4f6; }
+  .tl-item-row:hover .tl-row-grid { background: rgba(0,0,0,.02); }
+
+  .tl-label-cell {
+    flex-shrink: 0; padding: 0 10px;
+    font-size: 12px; display: flex; align-items: center; gap: 5px;
+    border-right: 1px solid var(--border); background: var(--surface);
+    position: sticky; left: 0; z-index: 2;
+    overflow: hidden; min-height: 32px;
+  }
+  .tl-label-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .tl-kind-tag {
+    font-size: 9px; font-weight: 700; padding: 1px 4px;
+    border-radius: 3px; flex-shrink: 0;
+    background: #f3f4f6; color: var(--text-muted); letter-spacing: .03em;
+  }
+
+  .tl-row-grid {
+    flex-shrink: 0; position: relative; min-height: 32px;
+    cursor: crosshair;
+    background-image: repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent calc(var(--tl-month-w, 80px) - 1px),
+      var(--border) calc(var(--tl-month-w, 80px) - 1px),
+      var(--border) var(--tl-month-w, 80px)
+    );
+  }
+  .tl-row-grid.has-bar { cursor: default; }
+
+  .tl-today-line {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: #ef4444; opacity: .6; pointer-events: none; z-index: 3;
+  }
+
+  .tl-bar {
+    position: absolute; top: 4px; bottom: 4px;
+    border-radius: 4px; display: flex; align-items: center;
+    overflow: visible; cursor: grab; z-index: 2; min-width: 8px;
+  }
+  .tl-bar:active { cursor: grabbing; }
+  .tl-bar-inner {
+    position: absolute; inset: 0; border-radius: 4px;
+    display: flex; align-items: center; overflow: hidden;
+  }
+  .tl-bar-ghost {
+    position: absolute; top: 4px; bottom: 4px;
+    border-radius: 4px; background: var(--accent);
+    opacity: .3; pointer-events: none; z-index: 1;
+  }
+  .tl-bar-label {
+    font-size: 11px; font-weight: 500; color: #fff;
+    padding: 0 6px; flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    pointer-events: none;
+  }
+  .tl-bar-clear {
+    font-size: 13px; line-height: 1; padding: 0 5px 0 0;
+    background: none; border: none; color: rgba(255,255,255,.7);
+    cursor: pointer; flex-shrink: 0;
+    opacity: 0; transition: opacity .1s;
+  }
+  .tl-bar:hover .tl-bar-clear { opacity: 1; }
+  .tl-bar-handle {
+    width: 7px; flex-shrink: 0; align-self: stretch;
+    cursor: ew-resize; z-index: 3; position: relative;
+    background: rgba(255,255,255,.25);
+  }
+  .tl-bar-handle.l { border-radius: 4px 0 0 4px; }
+  .tl-bar-handle.r { border-radius: 0 4px 4px 0; }
+
+  .tl-unsched-hdr { display: flex; align-items: center; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+  .tl-unsched-label { font-size: 11px; color: var(--text-muted); gap: 4px; }
+  .tl-unsched-rows .tl-label-cell { padding-left: 22px; }
+</style>
+</head>
+<body>
+
+<!-- Setup screen -->
+<div id="setup-screen" class="setup-screen hidden">
+  <div class="logo">🗺</div>
+  <h2>Roadmap</h2>
+  <p>Enter your Linear API key to view the product roadmap.<br>Keys are stored locally and never sent anywhere except Linear.</p>
+  <label style="font-size:12px;font-weight:600;color:#374151;display:block;text-align:left;margin-bottom:4px">Linear API Key <span style="color:#ef4444">*</span></label>
+  <input id="setup-key-input" type="password" placeholder="lin_api_…" autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()" />
+  <p style="margin-top:2px;margin-bottom:16px;font-size:11px;color:#9ca3af;text-align:left">
+    Get your key at <strong>Linear → Settings → API → Personal API keys</strong>
+  </p>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="saveApiKey()">Connect</button>
+    <button class="btn hidden" id="setup-cancel-btn" onclick="cancelSetup()">Cancel</button>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" class="hidden">
+  <header class="header">
+    <h1>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor" opacity=".3"/>
+        <rect x="1" y="7" width="9" height="2" rx="1" fill="currentColor" opacity=".6"/>
+        <rect x="1" y="11" width="12" height="2" rx="1" fill="currentColor"/>
+      </svg>
+      Roadmap
+    </h1>
+    <div class="header-right">
+      <span class="dot disconnected" id="connection-dot"></span>
+      <span id="cache-label"></span>
+      <button class="btn" id="reload-btn" onclick="reloadRoadmap()">↻ Reload</button>
+      <button class="btn" onclick="clearApiKey()">Change Key</button>
+    </div>
+  </header>
+
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filter-bar">
+    <div class="filter-group" style="position:relative">
+      <span>Teams</span>
+      <button class="filter-btn" id="team-picker-btn" onclick="toggleTeamPicker()">
+        All <span id="team-picker-count" class="hidden" style="background:#fff3;border-radius:20px;padding:0 5px;margin-left:2px"></span> ▾
+      </button>
+      <div id="team-picker-dropdown" class="init-picker-dropdown hidden">
+        <div class="init-picker-header">
+          <input id="team-picker-search" type="text" placeholder="Search…" oninput="renderTeamPicker()" autocomplete="off" />
+          <button class="init-picker-clear" onclick="clearTeamPicker()">Clear</button>
+        </div>
+        <div id="team-picker-list"></div>
+      </div>
+    </div>
+    <div class="filter-group" style="position:relative">
+      <span>Initiatives</span>
+      <button class="filter-btn" id="init-picker-btn" onclick="toggleInitiativePicker()">
+        All <span id="init-picker-count" class="hidden" style="background:#fff3;border-radius:20px;padding:0 5px;margin-left:2px"></span> ▾
+      </button>
+      <div id="init-picker-dropdown" class="init-picker-dropdown hidden">
+        <div class="init-picker-header">
+          <input id="init-picker-search" type="text" placeholder="Search…" oninput="renderInitiativePicker()" autocomplete="off" />
+          <button class="init-picker-clear" onclick="clearInitiativePicker()">Clear</button>
+        </div>
+        <div id="init-picker-list"></div>
+      </div>
+    </div>
+    <input id="roadmap-search" type="text" placeholder="Search initiatives, projects…" oninput="setSearchFilter(this.value)" />
+    <label class="toggle-label">
+      <input type="checkbox" id="show-cancelled" onchange="setShowCancelled(this.checked)" /> Show cancelled
+    </label>
+    <div class="filter-group" style="margin-left:auto">
+      <span>View</span>
+      <button class="filter-btn active" id="view-hierarchy-btn" onclick="setFlatView(false)">Strategic Tenet</button>
+      <button class="filter-btn" id="view-flat-btn" onclick="setFlatView(true)">Value</button>
+      <button class="filter-btn" id="view-timeline-btn" onclick="setTimelineView(true)">Timeline</button>
+    </div>
+    <button class="filter-btn" id="expand-all-btn" onclick="toggleExpandAll()">Expand all</button>
+    <span id="filter-summary"></span>
+  </div>
+
+  <main class="roadmap-main">
+    <div id="error-banner" class="error-banner hidden"></div>
+    <div id="loading-state" class="loading"><div class="spinner"></div> Loading roadmap…</div>
+    <div id="empty-state" class="empty-state hidden">
+      <div class="icon">🗺</div>
+      <p>No initiatives match your filters.</p>
+    </div>
+    <div id="initiative-list"></div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+const LINEAR_ENDPOINT = 'https://api.linear.app/graphql';
+const ROADMAP_CACHE_KEY = 'roadmap_cache';
+const ROADMAP_CACHE_VERSION = 3;
+const ROADMAP_EXPAND_INIT_KEY = 'roadmap_expand_init';
+const ROADMAP_EXPAND_PROJ_KEY = 'roadmap_expand_proj';
+const ROADMAP_ORDER_KEY = 'roadmap_custom_order';
+const ROADMAP_SUB_ORDER_KEY = 'roadmap_sub_order';
+const ROADMAP_PROJ_ORDER_KEY = 'roadmap_proj_order';
+const ROADMAP_INIT_FILTER_KEY = 'roadmap_init_filter';
+const ROADMAP_TEAM_FILTER_KEY = 'roadmap_team_filter';
+const ROADMAP_FLAT_VIEW_KEY = 'roadmap_flat_view';
+const ROADMAP_FLAT_SECTIONS_KEY = 'roadmap_flat_sections';
+const ROADMAP_FLAT_ORDER_KEY = 'roadmap_flat_order';
+const ROADMAP_TIMELINE_KEY   = 'roadmap_timeline_data';
+const ROADMAP_TL_OFFSET_KEY  = 'roadmap_tl_offset';
+const TL_LABEL_W    = 190;   // px — left label column width
+const TL_MONTH_W_MIN = 72;   // px — minimum month column width
+const TL_N_MONTHS   = 12;    // months visible at once
+
+// ── State ────────────────────────────────────────────────────────────────────
+let apiKey = null;
+let initiatives = [];
+const issueCache = new Map();       // projectId → { nodes, hasNextPage, cursor }
+let expandedInit = new Set();
+let expandedProjects = new Set();
+let allTeams = [];
+let filters = { search: '', showCancelled: false };
+let selectedTeamIds = new Set(); // empty = show all teams
+let teamChildMap = new Map();   // parentId → Set<childId>
+let selectedInitiativeIds = new Set(); // empty = show all
+let flatView = false;
+let flatSections = []; // [{ id, name, itemIds: string[] }]
+let expandedFlatSections = new Set();
+let flatItemOrder = []; // ordered array of item keys for flat view
+let flatDragSrcKey = null;
+let customOrder = []; // array of root initiative IDs in user-defined order
+let subInitOrder = {}; // { parentId: [childId, ...] }
+let dragSrcId = null;
+let subDragSrcId = null;
+let subDragParentId = null;
+let projOrder = {}; // { parentId: [projectId, ...] }
+let projDragSrcId = null;
+let projDragParentId = null;
+let secDragSrcIdx = null;
+let timelineView = false;
+let timelineData = {};          // { itemId: { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' } }
+let tlMonthOffset = 0;          // months from current month for window start
+let tlMonthWidth = TL_MONTH_W_MIN;
+let collapsedTlLanes = new Set();     // L1 ids that are collapsed (default all expanded)
+let expandedUnscheduled = new Set();  // L1 ids with unscheduled section open
+let tlDrag = null;              // { mode, itemId, startX, origStart, origEnd, side, ghostEl }
+let toastIdCounter = 0;
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  apiKey = localStorage.getItem('linear_api_key');
+  loadExpandState();
+  loadCustomOrder();
+  loadSubInitOrder();
+  loadProjOrder();
+  loadInitFilter();
+  loadTeamFilter();
+  loadFlatView();
+  loadFlatSections();
+  loadFlatItemOrder();
+  loadTimelineData();
+  loadTlOffset();
+  document.addEventListener('mousemove', tlMouseMove);
+  document.addEventListener('mouseup', tlMouseUp);
+  if (apiKey) {
+    showApp();
+  } else {
+    showSetup();
+  }
+});
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function showSetup() {
+  document.getElementById('setup-screen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('setup-key-input').value = localStorage.getItem('linear_api_key') || '';
+  document.getElementById('setup-cancel-btn').style.display =
+    localStorage.getItem('linear_api_key') ? '' : 'none';
+}
+
+function showApp() {
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('connection-dot').className = 'dot connected';
+  loadRoadmap();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('setup-key-input').value.trim();
+  if (!val) return;
+  apiKey = val;
+  localStorage.setItem('linear_api_key', val);
+  showApp();
+}
+
+function clearApiKey() {
+  showSetup();
+}
+
+function cancelSetup() {
+  if (localStorage.getItem('linear_api_key')) {
+    document.getElementById('setup-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+  }
+}
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('setup-screen').classList.contains('hidden')) {
+    cancelSetup();
+  }
+});
+
+// ── GraphQL helper ────────────────────────────────────────────────────────────
+async function gql(query, variables = {}) {
+  const res = await fetch(LINEAR_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': apiKey,
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    let detail = text;
+    try { detail = JSON.parse(text)?.errors?.[0]?.message || JSON.parse(text)?.error || text; } catch {}
+    throw new Error(`HTTP ${res.status}: ${detail}`);
+  }
+  const json = JSON.parse(text);
+  if (json.errors) throw new Error(json.errors[0]?.message || 'GraphQL error');
+  return json.data;
+}
+
+// ── Queries ───────────────────────────────────────────────────────────────────
+// Split into two queries to avoid Linear's complexity limit.
+// Projects are fetched separately and grouped by initiative client-side.
+const INITIATIVES_QUERY = `
+query Initiatives($cursor: String) {
+  initiatives(first: 50, after: $cursor) {
+    nodes {
+      id name status targetDate
+      parentInitiative { id }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}`;
+
+const PROJECTS_QUERY = `
+query Projects($cursor: String) {
+  projects(first: 50, after: $cursor) {
+    nodes {
+      id name state progress url
+      startDate targetDate completedAt canceledAt
+      lead { id name avatarUrl }
+      teams { nodes { id name } }
+      initiatives { nodes { id } }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}`;
+
+const PROJECT_ISSUES_QUERY = `
+query ProjectIssues($projectId: ID!, $cursor: String) {
+  project(id: $projectId) {
+    issues(
+      first: 50
+      after: $cursor
+      orderBy: updatedAt
+      filter: { state: { type: { nin: ["cancelled"] } } }
+    ) {
+      nodes {
+        id identifier title url priority dueDate completedAt
+        state { id name type color }
+        assignee { id name avatarUrl }
+        team { id name }
+        labels { nodes { name color } }
+      }
+      pageInfo { hasNextPage endCursor }
+    }
+  }
+}`;
+
+const TEAMS_QUERY = `
+query Teams { teams(first: 100) { nodes { id name parent { id } } } }`;
+
+// ── Load roadmap ───────────────────────────────────────────────────────────────
+async function loadRoadmap() {
+  showLoading(true);
+  hideError();
+
+  // Check cache first
+  try {
+    const cached = JSON.parse(localStorage.getItem(ROADMAP_CACHE_KEY) || 'null');
+    if (cached?.v === ROADMAP_CACHE_VERSION && cached?.initiatives?.length) {
+      initiatives = cached.initiatives;
+      updateCacheLabel(cached.ts);
+      await loadTeams();
+      showLoading(false);
+      updateInitiativePickerBtn();
+      updateTeamPickerBtn();
+      renderRoadmap();
+      renderInitiativePicker();
+      return;
+    }
+  } catch {}
+
+  await fetchAndCacheRoadmap();
+}
+
+async function fetchAndCacheRoadmap() {
+  showLoading(true);
+  try {
+    // Fetch teams, initiatives, and projects in parallel (first pages)
+    const [teamsData, initData, projData] = await Promise.all([
+      gql(TEAMS_QUERY),
+      gql(INITIATIVES_QUERY),
+      gql(PROJECTS_QUERY),
+    ]);
+
+    allTeams = teamsData?.teams?.nodes || [];
+    buildTeamChildMap();
+    populateTeamFilter();
+
+    // Paginate remaining initiatives if needed
+    let allInits = initData?.initiatives?.nodes || [];
+    let cursor = initData?.initiatives?.pageInfo?.hasNextPage
+      ? initData.initiatives.pageInfo.endCursor : null;
+    while (cursor) {
+      const data = await gql(INITIATIVES_QUERY, { cursor });
+      allInits = allInits.concat(data?.initiatives?.nodes || []);
+      cursor = data?.initiatives?.pageInfo?.hasNextPage
+        ? data.initiatives.pageInfo.endCursor : null;
+    }
+
+    // Paginate remaining projects if needed
+    let allProjects = projData?.projects?.nodes || [];
+    cursor = projData?.projects?.pageInfo?.hasNextPage
+      ? projData.projects.pageInfo.endCursor : null;
+    while (cursor) {
+      const data = await gql(PROJECTS_QUERY, { cursor });
+      allProjects = allProjects.concat(data?.projects?.nodes || []);
+      cursor = data?.projects?.pageInfo?.hasNextPage
+        ? data.projects.pageInfo.endCursor : null;
+    }
+
+    // Group projects by initiative id, client-side
+    const projsByInit = new Map();
+    const unlinked = [];
+    for (const p of allProjects) {
+      const initIds = (p.initiatives?.nodes || []).map(i => i.id);
+      if (initIds.length > 0) {
+        for (const initId of initIds) {
+          if (!projsByInit.has(initId)) projsByInit.set(initId, []);
+          projsByInit.get(initId).push(p);
+        }
+      } else {
+        unlinked.push(p);
+      }
+    }
+
+    // Build initiative map with projects attached
+    const initMap = new Map();
+    for (const init of allInits) {
+      initMap.set(init.id, { ...init, projects: { nodes: projsByInit.get(init.id) || [] }, children: [] });
+    }
+
+    // Nest children under parents using parentId
+    const rootInits = [];
+    for (const init of initMap.values()) {
+      const parentId = init.parentInitiative?.id;
+      if (parentId && initMap.has(parentId)) {
+        initMap.get(parentId).children.push(init);
+      } else {
+        rootInits.push(init);
+      }
+    }
+
+    initiatives = rootInits;
+
+    // Append a synthetic "No Initiative" group if there are unlinked projects
+    if (unlinked.length > 0) {
+      initiatives.push({
+        id: '__unlinked__',
+        name: 'No Initiative',
+        status: 'planned',
+        targetDate: null,
+        children: [],
+        projects: { nodes: unlinked },
+      });
+    }
+
+    const ts = Date.now();
+    localStorage.setItem(ROADMAP_CACHE_KEY, JSON.stringify({ v: ROADMAP_CACHE_VERSION, ts, initiatives }));
+    updateCacheLabel(ts);
+    showLoading(false);
+    updateInitiativePickerBtn();
+    renderRoadmap();
+    renderInitiativePicker();
+  } catch (err) {
+    showLoading(false);
+    showError(err.message);
+  }
+}
+
+async function loadTeams() {
+  if (allTeams.length > 0) return;
+  try {
+    const data = await gql(TEAMS_QUERY);
+    allTeams = data?.teams?.nodes || [];
+    buildTeamChildMap();
+    populateTeamFilter();
+  } catch {}
+}
+
+async function reloadRoadmap() {
+  localStorage.removeItem(ROADMAP_CACHE_KEY);
+  issueCache.clear();
+  initiatives = [];
+  allTeams = [];
+  document.getElementById('team-picker-list').innerHTML = '';
+  await fetchAndCacheRoadmap();
+}
+
+// ── Team picker ───────────────────────────────────────────────────────────────
+let teamPickerOpen = false;
+
+function buildTeamChildMap() {
+  teamChildMap = new Map();
+  for (const t of allTeams) {
+    if (t.parent?.id) {
+      if (!teamChildMap.has(t.parent.id)) teamChildMap.set(t.parent.id, new Set());
+      teamChildMap.get(t.parent.id).add(t.id);
+    }
+  }
+  _effectiveTeamIdsCache = null;
+}
+
+function populateTeamFilter() {
+  renderTeamPicker();
+  updateTeamPickerBtn();
+}
+
+function loadTeamFilter() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ROADMAP_TEAM_FILTER_KEY) || '[]');
+    selectedTeamIds = new Set(saved);
+  } catch { selectedTeamIds = new Set(); }
+}
+
+function saveTeamFilter() {
+  localStorage.setItem(ROADMAP_TEAM_FILTER_KEY, JSON.stringify([...selectedTeamIds]));
+}
+
+function toggleTeamPicker() {
+  teamPickerOpen ? closeTeamPicker() : openTeamPicker();
+}
+
+function openTeamPicker() {
+  teamPickerOpen = true;
+  document.getElementById('team-picker-dropdown').classList.remove('hidden');
+  const searchEl = document.getElementById('team-picker-search');
+  if (searchEl) { searchEl.value = ''; searchEl.focus(); }
+  renderTeamPicker();
+  setTimeout(() => document.addEventListener('click', outsideTeamPickerClick), 0);
+}
+
+function closeTeamPicker() {
+  teamPickerOpen = false;
+  document.getElementById('team-picker-dropdown').classList.add('hidden');
+  document.removeEventListener('click', outsideTeamPickerClick);
+}
+
+function outsideTeamPickerClick(e) {
+  const wrap = document.getElementById('team-picker-btn')?.closest('.filter-group');
+  if (wrap && !wrap.contains(e.target)) closeTeamPicker();
+}
+
+// ── Initiative color palette ──────────────────────────────────────────────────
+// Each Level 1 initiative gets a stable color by its index in the full list.
+const INIT_COLORS = [
+  { bg: '#eef0fb', text: '#3730a3', border: '#6366f1' }, // indigo
+  { bg: '#f0fdf4', text: '#166534', border: '#22c55e' }, // green
+  { bg: '#fff7ed', text: '#9a3412', border: '#f97316' }, // orange
+  { bg: '#fdf4ff', text: '#7e22ce', border: '#a855f7' }, // purple
+  { bg: '#eff6ff', text: '#1e40af', border: '#3b82f6' }, // blue
+  { bg: '#fff1f2', text: '#9f1239', border: '#f43f5e' }, // rose
+  { bg: '#f0fdfa', text: '#134e4a', border: '#14b8a6' }, // teal
+  { bg: '#fefce8', text: '#854d0e', border: '#eab308' }, // amber
+  { bg: '#fdf2f8', text: '#9d174d', border: '#ec4899' }, // pink
+  { bg: '#f0f9ff', text: '#0c4a6e', border: '#0ea5e9' }, // sky
+];
+
+function getInitColor(id) {
+  const idx = initiatives.findIndex(i => i.id === id);
+  return INIT_COLORS[(idx < 0 ? 0 : idx) % INIT_COLORS.length];
+}
+
+// Show teams whose name starts with any of these strings (case-insensitive).
+// Catches "Feedback", "Feedback / Triage", "Prod Dev", "Prod Dev / Core", etc.
+// but excludes "EHR Feedback", "Enterprise Feedback", etc.
+const TEAM_ALLOWLIST = ['feedback', 'prod dev'];
+const TEAM_BLOCKLIST = ['prod dev leadership'];
+function isAllowedTeam(name) {
+  const lower = name.trim().toLowerCase();
+  if (TEAM_BLOCKLIST.includes(lower)) return false;
+  return TEAM_ALLOWLIST.some(prefix => lower === prefix || lower.startsWith(prefix + ' ') || lower.startsWith(prefix + '/'));
+}
+
+function renderTeamPicker() {
+  const el = document.getElementById('team-picker-list');
+  if (!el) return;
+  const q = (document.getElementById('team-picker-search')?.value || '').toLowerCase().trim();
+  const visible = allTeams.filter(t => isAllowedTeam(t.name) && (!q || t.name.toLowerCase().includes(q)));
+  if (!visible.length) {
+    el.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--text-muted)">No teams found</div>';
+    return;
+  }
+  el.innerHTML = visible.map(t => {
+    const checked = selectedTeamIds.has(t.id) ? 'checked' : '';
+    return `<label class="init-picker-item">
+      <input type="checkbox" ${checked} onchange="toggleTeamSelection('${escHtml(t.id)}')" />
+      <span class="item-label" title="${escHtml(t.name)}">${escHtml(t.name)}</span>
+    </label>`;
+  }).join('');
+}
+
+function toggleTeamSelection(id) {
+  if (selectedTeamIds.has(id)) {
+    selectedTeamIds.delete(id);
+  } else {
+    selectedTeamIds.add(id);
+  }
+  _effectiveTeamIdsCache = null;
+  saveTeamFilter();
+  updateTeamPickerBtn();
+  renderRoadmap();
+}
+
+function clearTeamPicker() {
+  selectedTeamIds.clear();
+  _effectiveTeamIdsCache = null;
+  saveTeamFilter();
+  updateTeamPickerBtn();
+  renderTeamPicker();
+  renderRoadmap();
+}
+
+function updateTeamPickerBtn() {
+  const btn = document.getElementById('team-picker-btn');
+  const countEl = document.getElementById('team-picker-count');
+  if (!btn) return;
+  const n = selectedTeamIds.size;
+  if (n > 0) {
+    btn.classList.add('active');
+    countEl.textContent = n + ' shown';
+    countEl.classList.remove('hidden');
+  } else {
+    btn.classList.remove('active');
+    countEl.classList.add('hidden');
+  }
+}
+
+// ── Initiative picker ──────────────────────────────────────────────────────────
+let initPickerOpen = false;
+
+function toggleInitiativePicker() {
+  initPickerOpen ? closeInitiativePicker() : openInitiativePicker();
+}
+
+function openInitiativePicker() {
+  initPickerOpen = true;
+  document.getElementById('init-picker-dropdown').classList.remove('hidden');
+  document.getElementById('init-picker-search').value = '';
+  renderInitiativePicker();
+  // Close on outside click
+  setTimeout(() => document.addEventListener('click', outsidePickerClick), 0);
+}
+
+function closeInitiativePicker() {
+  initPickerOpen = false;
+  document.getElementById('init-picker-dropdown').classList.add('hidden');
+  document.removeEventListener('click', outsidePickerClick);
+}
+
+function outsidePickerClick(e) {
+  const wrap = document.getElementById('init-picker-btn')?.closest('.filter-group');
+  if (wrap && !wrap.contains(e.target)) closeInitiativePicker();
+}
+
+function renderInitiativePicker() {
+  const q = document.getElementById('init-picker-search')?.value.toLowerCase().trim() || '';
+  // Only show root initiatives in picker
+  const list = initiatives.filter(i =>
+    i.id !== '__unlinked__' && (!q || i.name?.toLowerCase().includes(q))
+  );
+  const el = document.getElementById('init-picker-list');
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--text-muted)">No initiatives found</div>';
+    return;
+  }
+  el.innerHTML = list.map(i => {
+    const checked = selectedInitiativeIds.has(i.id) ? 'checked' : '';
+    const projCount = allProjectsInSubtree(i).length;
+    return `<label class="init-picker-item">
+      <input type="checkbox" ${checked} onchange="toggleInitiativeSelection('${escHtml(i.id)}')" />
+      <span class="item-label" title="${escHtml(i.name)}">${escHtml(i.name)}</span>
+      <span class="item-badge">${projCount}p</span>
+    </label>`;
+  }).join('');
+}
+
+function loadInitFilter() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ROADMAP_INIT_FILTER_KEY) || '[]');
+    selectedInitiativeIds = new Set(saved);
+  } catch { selectedInitiativeIds = new Set(); }
+}
+
+function saveInitFilter() {
+  localStorage.setItem(ROADMAP_INIT_FILTER_KEY, JSON.stringify([...selectedInitiativeIds]));
+}
+
+function toggleInitiativeSelection(id) {
+  if (selectedInitiativeIds.has(id)) {
+    selectedInitiativeIds.delete(id);
+  } else {
+    selectedInitiativeIds.add(id);
+  }
+  saveInitFilter();
+  updateInitiativePickerBtn();
+  renderRoadmap();
+}
+
+function clearInitiativePicker() {
+  selectedInitiativeIds.clear();
+  saveInitFilter();
+  updateInitiativePickerBtn();
+  renderInitiativePicker();
+  renderRoadmap();
+}
+
+function updateInitiativePickerBtn() {
+  const btn = document.getElementById('init-picker-btn');
+  const countEl = document.getElementById('init-picker-count');
+  const n = selectedInitiativeIds.size;
+  if (n > 0) {
+    btn.classList.add('active');
+    countEl.textContent = n;
+    countEl.classList.remove('hidden');
+  } else {
+    btn.classList.remove('active');
+    countEl.classList.add('hidden');
+  }
+}
+
+// ── View mode ─────────────────────────────────────────────────────────────────
+function loadFlatView() {
+  try { flatView = JSON.parse(localStorage.getItem(ROADMAP_FLAT_VIEW_KEY) || 'false'); } catch { flatView = false; }
+  document.getElementById('view-hierarchy-btn')?.classList.toggle('active', !flatView);
+  document.getElementById('view-flat-btn')?.classList.toggle('active', flatView);
+  document.getElementById('view-timeline-btn')?.classList.remove('active');
+}
+
+function setFlatView(val) {
+  timelineView = false;
+  flatView = val;
+  localStorage.setItem(ROADMAP_FLAT_VIEW_KEY, JSON.stringify(val));
+  document.getElementById('view-hierarchy-btn').classList.toggle('active', !val);
+  document.getElementById('view-flat-btn').classList.toggle('active', val);
+  document.getElementById('view-timeline-btn').classList.remove('active');
+  renderRoadmap();
+}
+
+function loadFlatItemOrder() {
+  try { flatItemOrder = JSON.parse(localStorage.getItem(ROADMAP_FLAT_ORDER_KEY) || '[]'); }
+  catch { flatItemOrder = []; }
+}
+function saveFlatItemOrder() {
+  localStorage.setItem(ROADMAP_FLAT_ORDER_KEY, JSON.stringify(flatItemOrder));
+}
+function applyFlatItemOrder(items) {
+  const keyOf = i => i._kind === 'projectGroup' ? `${i._parentId}__projects` : i.id;
+  const orderMap = new Map(flatItemOrder.map((k, idx) => [k, idx]));
+  return [...items].sort((a, b) => {
+    const ai = orderMap.has(keyOf(a)) ? orderMap.get(keyOf(a)) : Infinity;
+    const bi = orderMap.has(keyOf(b)) ? orderMap.get(keyOf(b)) : Infinity;
+    return ai - bi;
+  });
+}
+
+function loadFlatSections() {
+  try { flatSections = JSON.parse(localStorage.getItem(ROADMAP_FLAT_SECTIONS_KEY) || '[]'); }
+  catch { flatSections = []; }
+}
+function saveFlatSections() {
+  localStorage.setItem(ROADMAP_FLAT_SECTIONS_KEY, JSON.stringify(flatSections));
+}
+
+function toggleFlatSection(sectionId) {
+  if (expandedFlatSections.has(sectionId)) {
+    expandedFlatSections.delete(sectionId);
+  } else {
+    expandedFlatSections.add(sectionId);
+  }
+  const block = document.querySelector(`[data-section-id="${CSS.escape(sectionId)}"]`);
+  if (!block) return;
+  const isExpanded = expandedFlatSections.has(sectionId);
+  const header = block.firstElementChild;
+  const body = block.children[1];
+  header.classList.toggle('collapsed', !isExpanded);
+  body.classList.toggle('collapsed', !isExpanded);
+  header.querySelector('.chevron')?.classList.toggle('collapsed', !isExpanded);
+}
+
+// ── Flat view drag-and-drop ───────────────────────────────────────────────────
+function flatDragStart(event, itemKey) {
+  flatDragSrcKey = itemKey;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', itemKey);
+  const card = document.querySelector(`[data-flat-key="${CSS.escape(itemKey)}"]`);
+  if (card) setTimeout(() => card.classList.add('dragging'), 0);
+  event.stopPropagation();
+}
+
+function flatDragOver(event) {
+  if (secDragSrcIdx !== null) return; // section drag in progress — don't show card indicators
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const card = event.target.closest('[data-flat-key]');
+  if (!card || card.dataset.flatKey === flatDragSrcKey) return;
+  document.querySelectorAll('[data-flat-key]')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const rect = card.getBoundingClientRect();
+  card.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function flatDrop(event, targetKey) {
+  event.preventDefault();
+  if (secDragSrcIdx !== null) return; // let event bubble to secDrop
+  if (!flatDragSrcKey || flatDragSrcKey === targetKey) { flatDragSrcKey = null; return; }
+  event.stopPropagation();
+  document.querySelectorAll('[data-flat-key]')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  // Move to target's section if different
+  const targetSectionId = getItemSectionId(targetKey);
+  const srcSectionId = getItemSectionId(flatDragSrcKey);
+  if (targetSectionId !== srcSectionId) {
+    for (const sec of flatSections) sec.itemIds = sec.itemIds.filter(k => k !== flatDragSrcKey);
+    if (targetSectionId) {
+      const sec = flatSections.find(s => s.id === targetSectionId);
+      if (sec) sec.itemIds.push(flatDragSrcKey);
+    }
+    saveFlatSections();
+  }
+  const targetCard = document.querySelector(`[data-flat-key="${CSS.escape(targetKey)}"]`);
+  const insertBefore = targetCard && event.clientY < targetCard.getBoundingClientRect().top + targetCard.getBoundingClientRect().height / 2;
+  const current = [...document.querySelectorAll('[data-flat-key]')].map(c => c.dataset.flatKey);
+  const next = current.filter(k => k !== flatDragSrcKey);
+  const idx = next.indexOf(targetKey);
+  if (idx === -1) { flatDragSrcKey = null; renderRoadmap(); return; }
+  next.splice(insertBefore ? idx : idx + 1, 0, flatDragSrcKey);
+  flatItemOrder = next;
+  saveFlatItemOrder();
+  flatDragSrcKey = null;
+  renderRoadmap();
+}
+
+function flatDropToSection(event, sectionId) {
+  event.preventDefault();
+  if (secDragSrcIdx !== null || !flatDragSrcKey) return; // let event bubble to secDrop if section drag
+  event.stopPropagation();
+  document.querySelectorAll('[data-flat-key]')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  for (const sec of flatSections) sec.itemIds = sec.itemIds.filter(k => k !== flatDragSrcKey);
+  if (sectionId) {
+    const sec = flatSections.find(s => s.id === sectionId);
+    if (sec) sec.itemIds.push(flatDragSrcKey);
+  }
+  saveFlatSections();
+  flatDragSrcKey = null;
+  renderRoadmap();
+}
+
+function flatDragEnd() {
+  document.querySelectorAll('[data-flat-key]')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  flatDragSrcKey = null;
+}
+
+// ── Flat section drag-to-reorder ─────────────────────────────────────────────
+function secDragStart(event, idx) {
+  secDragSrcIdx = idx;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(idx));
+  const el = document.querySelector(`[data-section-idx="${idx}"]`);
+  if (el) setTimeout(() => el.classList.add('dragging'), 0);
+  event.stopPropagation();
+}
+
+function secDragOver(event, idx) {
+  if (secDragSrcIdx === null || secDragSrcIdx === idx) return;
+  event.preventDefault();
+  event.stopPropagation();
+  document.querySelectorAll('[data-section-idx]')
+    .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const el = document.querySelector(`[data-section-idx="${idx}"]`);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  el.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function secDrop(event, idx) {
+  event.preventDefault();
+  event.stopPropagation();
+  document.querySelectorAll('[data-section-idx]')
+    .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  if (secDragSrcIdx === null || secDragSrcIdx === idx) { secDragSrcIdx = null; return; }
+  const el = document.querySelector(`[data-section-idx="${idx}"]`);
+  const insertBefore = el && event.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
+  const moved = flatSections.splice(secDragSrcIdx, 1)[0];
+  const targetIdx = secDragSrcIdx < idx ? idx - 1 : idx;
+  flatSections.splice(insertBefore ? targetIdx : targetIdx + 1, 0, moved);
+  secDragSrcIdx = null;
+  saveFlatSections();
+  renderRoadmap();
+}
+
+function secDragEnd() {
+  document.querySelectorAll('[data-section-idx]')
+    .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  secDragSrcIdx = null;
+}
+
+// ── Flat section management ───────────────────────────────────────────────────
+function addFlatSection() {
+  const name = prompt('Section name:');
+  if (!name?.trim()) return;
+  flatSections.push({ id: 'sec_' + Date.now(), name: name.trim(), itemIds: [] });
+  saveFlatSections();
+  renderRoadmap();
+}
+
+function editFlatSection(sectionId) {
+  const sec = flatSections.find(s => s.id === sectionId);
+  if (!sec) return;
+  const name = prompt('Rename section:', sec.name);
+  if (!name?.trim()) return;
+  sec.name = name.trim();
+  saveFlatSections();
+  renderRoadmap();
+}
+
+function deleteFlatSection(sectionId) {
+  if (!confirm('Delete this section? Items will become unsectioned.')) return;
+  flatSections = flatSections.filter(s => s.id !== sectionId);
+  saveFlatSections();
+  renderRoadmap();
+}
+
+function assignItemToSection(itemKey, sectionId) {
+  for (const sec of flatSections) sec.itemIds = sec.itemIds.filter(k => k !== itemKey);
+  if (sectionId) {
+    const sec = flatSections.find(s => s.id === sectionId);
+    if (sec) sec.itemIds.push(itemKey);
+  }
+  saveFlatSections();
+  closeSectionPicker();
+  renderRoadmap();
+}
+
+function getItemSectionId(itemKey) {
+  for (const sec of flatSections) {
+    if (sec.itemIds.includes(itemKey)) return sec.id;
+  }
+  return null;
+}
+
+let _openSectionPickerKey = null;
+function toggleSectionPicker(itemKey, buttonEl) {
+  closeSectionPicker();
+  if (_openSectionPickerKey === itemKey) { _openSectionPickerKey = null; return; }
+  _openSectionPickerKey = itemKey;
+  const currentSectionId = getItemSectionId(itemKey);
+  const dropdown = document.createElement('div');
+  dropdown.className = 'section-picker-dropdown';
+  dropdown.id = 'section-picker-open';
+  const opts = flatSections.map(s => `
+    <div class="section-picker-option${currentSectionId === s.id ? ' active' : ''}"
+      onclick="assignItemToSection('${escHtml(itemKey)}','${s.id}')">
+      ${currentSectionId === s.id ? '✓ ' : ''}${escHtml(s.name)}
+    </div>`).join('');
+  dropdown.innerHTML = `
+    <div class="section-picker-option muted${!currentSectionId ? ' active' : ''}"
+      onclick="assignItemToSection('${escHtml(itemKey)}',null)">
+      ${!currentSectionId ? '✓ ' : ''}Unsectioned
+    </div>
+    ${flatSections.length > 0 ? '<div class="section-picker-divider"></div>' : ''}
+    ${opts}
+    <div class="section-picker-divider"></div>
+    <div class="section-picker-new" onclick="addFlatSection()">+ New section</div>`;
+  const rect = buttonEl.getBoundingClientRect();
+  dropdown.style.top = (rect.bottom + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  document.body.appendChild(dropdown);
+  const dr = dropdown.getBoundingClientRect();
+  if (dr.bottom > window.innerHeight - 8) {
+    dropdown.style.top = Math.max(8, rect.top - dr.height - 4) + 'px';
+  }
+  if (dr.right > window.innerWidth - 8) {
+    dropdown.style.left = Math.max(8, window.innerWidth - dr.width - 8) + 'px';
+  }
+  setTimeout(() => document.addEventListener('click', _closeSectionPickerOutside, { once: true }), 0);
+}
+
+function _closeSectionPickerOutside(e) {
+  const el = document.getElementById('section-picker-open');
+  if (el && !el.contains(e.target)) closeSectionPicker();
+  else if (el) document.addEventListener('click', _closeSectionPickerOutside, { once: true });
+}
+
+function closeSectionPicker() {
+  document.getElementById('section-picker-open')?.remove();
+  _openSectionPickerKey = null;
+}
+
+function sectionPickerHtml(itemKey) {
+  const sectionId = getItemSectionId(itemKey);
+  const sec = flatSections.find(s => s.id === sectionId);
+  const title = sec ? `Section: ${escHtml(sec.name)}` : 'Assign to section';
+  return `<button class="section-picker-btn${sec ? ' assigned' : ''}" onclick="event.stopPropagation();toggleSectionPicker('${escHtml(itemKey)}',this)" title="${title}">⊞</button>`;
+}
+
+// ── Flat sections renderer ────────────────────────────────────────────────────
+function renderFlatItem(item) {
+  if (item._kind === 'project') return renderFlatProject(item, item._parentName, item._parentId);
+  return renderFlatInitiative(item);
+}
+
+function renderFlatViewHtml(flatItems) {
+  const itemKey = i => i._kind === 'projectGroup' ? `${i._parentId}__projects` : i.id;
+  const addBtn = `<button class="add-section-btn" onclick="addFlatSection()">+ Add section</button>`;
+
+  if (flatSections.length === 0) {
+    return flatItems.map(renderFlatItem).join('') + addBtn;
+  }
+
+  let html = '';
+
+  for (let si = 0; si < flatSections.length; si++) {
+    const sec = flatSections[si];
+    const color = INIT_COLORS[si % INIT_COLORS.length];
+    const sectionKeySet = new Set(sec.itemIds);
+    const items = flatItems.filter(i => sectionKeySet.has(itemKey(i)));
+    if (!expandedFlatSections.has(sec.id)) expandedFlatSections.add(sec.id);
+    const isExpanded = expandedFlatSections.has(sec.id);
+    html += `
+<section class="initiative-block" data-section-id="${escHtml(sec.id)}" data-section-idx="${si}"
+  style="border-left:3px solid ${color.border}"
+  ondragover="secDragOver(event,${si})" ondrop="secDrop(event,${si})" ondragend="secDragEnd()">
+  <div class="initiative-header${isExpanded ? '' : ' collapsed'}" style="background:${color.bg}" onclick="toggleFlatSection('${escHtml(sec.id)}')">
+    <span class="drag-handle" draggable="true" ondragstart="secDragStart(event,${si})" onclick="event.stopPropagation()" title="Drag to reorder section">⠿</span>
+    <span class="chevron${isExpanded ? '' : ' collapsed'}">▼</span>
+    <span class="initiative-name">${escHtml(sec.name)}</span>
+    <div class="initiative-meta">
+      <span class="project-count-badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+      <button class="flat-section-action-btn" onclick="event.stopPropagation();editFlatSection('${escHtml(sec.id)}')" title="Rename">✎</button>
+      <button class="flat-section-action-btn" onclick="event.stopPropagation();deleteFlatSection('${escHtml(sec.id)}')" title="Delete">✕</button>
+    </div>
+  </div>
+  <div class="initiative-body${isExpanded ? '' : ' collapsed'}"
+    ondragover="event.preventDefault()" ondrop="flatDropToSection(event,'${escHtml(sec.id)}')">
+    ${items.length === 0 ? '<p class="flat-section-empty-hint">No items — drag a card here or use ⊞ to assign.</p>' : items.map(renderFlatItem).join('')}
+  </div>
+</section>`;
+  }
+
+  html += addBtn;
+
+  const assignedKeys = new Set(flatSections.flatMap(s => s.itemIds));
+  const unsectioned = flatItems.filter(i => !assignedKeys.has(itemKey(i)));
+  if (unsectioned.length > 0) {
+    html += `
+<div class="flat-section flat-section-unsectioned"
+  ondragover="event.preventDefault()" ondrop="flatDropToSection(event, null)">
+  <div class="flat-section-header">
+    <span class="flat-section-title">Unsectioned</span>
+    <span class="flat-section-count">${unsectioned.length} item${unsectioned.length !== 1 ? 's' : ''}</span>
+  </div>
+  ${unsectioned.map(renderFlatItem).join('')}
+</div>`;
+  }
+
+  return html;
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function setSearchFilter(val) {
+  filters.search = val.toLowerCase().trim();
+  renderRoadmap();
+}
+
+function setShowCancelled(val) {
+  filters.showCancelled = val;
+  renderRoadmap();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderRoadmap() {
+  const list = document.getElementById('initiative-list');
+  const emptyState = document.getElementById('empty-state');
+
+  const filtered = getFilteredInitiatives();
+  const ordered = applyCustomOrder(filtered);
+
+  if (timelineView) {
+    emptyState.classList.add('hidden');
+    list.innerHTML = renderTimelineHtml(ordered);
+    document.getElementById('filter-summary').textContent = '';
+    return;
+  }
+
+  if (flatView) {
+    // Flat view: L2 sub-initiatives and direct L1 projects each as individual top-level cards.
+    const flatItems = []; // { _kind:'initiative'|'project', ... }
+    for (const l1 of ordered) {
+      const l2s = (l1.children || []).filter(initiativeMatchesFilters);
+      const orderedL2s = applySubInitOrder(l2s, l1.id);
+      const directProjects = getVisibleProjects(l1);
+      for (const l2 of orderedL2s) {
+        flatItems.push({ _kind: 'initiative', ...l2, _parentName: l1.name, _parentId: l1.id });
+      }
+      for (const p of directProjects) {
+        flatItems.push({ _kind: 'project', ...p, _parentName: l1.name, _parentId: l1.id });
+      }
+    }
+    const flatItemsSorted = applyFlatItemOrder(flatItems);
+    const projCount = flatItemsSorted.reduce((n, i) =>
+      n + (i._kind === 'project' ? 1 : allProjectsInSubtree(i).length), 0);
+    document.getElementById('filter-summary').textContent =
+      `${flatItemsSorted.length} item${flatItemsSorted.length !== 1 ? 's' : ''} · ${projCount} project${projCount !== 1 ? 's' : ''}`;
+    if (flatItemsSorted.length === 0) {
+      list.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+    list.innerHTML = renderFlatViewHtml(flatItemsSorted);
+    updateExpandAllBtn();
+    return;
+  }
+
+  // Hierarchy view (default)
+  const projCount = ordered.reduce((n, i) => n + allProjectsInSubtree(i).length, 0);
+  document.getElementById('filter-summary').textContent =
+    `${ordered.length} initiative${ordered.length !== 1 ? 's' : ''} · ${projCount} project${projCount !== 1 ? 's' : ''}`;
+
+  if (ordered.length === 0) {
+    list.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  emptyState.classList.add('hidden');
+  list.innerHTML = ordered.map(initiative => renderInitiative(initiative)).join('');
+  updateExpandAllBtn();
+}
+
+// Flat view: render a Level 2 initiative as a top-level card with its Level 1 parent shown as a label.
+// Level 3+ sub-initiatives remain nested underneath using the standard renderInitiative path.
+function renderFlatInitiative(initiative) {
+  const id = initiative.id;
+  const isExpanded = expandedInit.has(id);
+  const projects = getVisibleProjects(initiative);
+  const filteredChildren = (initiative.children || []).filter(initiativeMatchesFilters);
+  const orderedChildren = applySubInitOrder(filteredChildren, id);
+  const pct = initiativeProgress(initiative);
+  const fillClass = pct >= 100 ? 'done' : '';
+  const totalProjects = visibleProjectsInSubtree(initiative).length;
+  const hasContent = projects.length > 0 || orderedChildren.length > 0;
+  const dateStr = '';
+  const color = getInitColor(initiative._parentId || id);
+  const truncate = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : str;
+  const parentLabel = initiative._parentName
+    ? `<span class="parent-label" title="${escHtml(initiative._parentName)}" style="background:${color.bg};color:${color.text};border-color:${color.border}">${escHtml(truncate(initiative._parentName, 20))}</span>`
+    : '';
+
+  return `
+<section class="sub-initiative-block" data-id="${escHtml(id)}" data-flat-key="${escHtml(id)}" style="border-left: 3px solid var(--border)"
+  ondragover="flatDragOver(event)" ondrop="flatDrop(event,'${escHtml(id)}')" ondragend="flatDragEnd()">
+  <div class="sub-initiative-header${isExpanded ? '' : ' collapsed'}" onclick="toggleInitiative('${escHtml(id)}')">
+    <span class="drag-handle" draggable="true" ondragstart="flatDragStart(event,'${escHtml(id)}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+    <span class="chevron${isExpanded ? '' : ' collapsed'}">▼</span>
+    <span class="sub-initiative-name" title="${escHtml(initiative.name)}">${escHtml(initiative.name)}</span>
+    <div class="initiative-meta">
+      ${statusBadgeHtml(initiative.status)}
+      ${orderedChildren.length > 0 ? `<span class="project-count-badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${orderedChildren.length} initiative${orderedChildren.length !== 1 ? 's' : ''}</span>` : ''}
+      <span class="project-count-badge">${totalProjects} project${totalProjects !== 1 ? 's' : ''}</span>
+      ${parentLabel}
+      ${sectionPickerHtml(id)}
+    </div>
+  </div>
+  <div class="sub-initiative-body${isExpanded ? '' : ' collapsed'}" id="init-body-${escHtml(id)}">
+    ${!hasContent ? '<p class="no-projects-msg">No projects linked.</p>' : ''}
+    ${orderedChildren.map(c => renderInitiative(c, 1, id)).join('')}
+    ${projects.map(p => renderProject(p)).join('')}
+  </div>
+</section>`;
+}
+
+// Renders a project directly linked to a L1 initiative as a standalone flat card.
+// Styled differently from initiative cards: dashed border, no tinted background, "Project" tag.
+function renderFlatProject(project, parentName, parentId) {
+  const teams = (project.teams?.nodes || []).filter(t => !t.name.toLowerCase().includes('feedback')).map(t => t.name).join(', ');
+  const sc = STATUS_STYLES[project.state] || STATUS_STYLES.planned;
+  const initColor = getInitColor(parentId);
+  const truncate = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : str;
+  const parentLabel = parentName
+    ? `<span class="parent-label" title="${escHtml(parentName)}" style="background:${initColor.bg};color:${initColor.text};border-color:${initColor.border}">${escHtml(truncate(parentName, 20))}</span>`
+    : '';
+  return `
+<section class="flat-project-card" data-flat-key="${escHtml(project.id)}" style="border-left:3px solid ${sc.border}"
+  ondragover="flatDragOver(event)" ondrop="flatDrop(event,'${escHtml(project.id)}')" ondragend="flatDragEnd()">
+  <div class="initiative-header" style="background:${sc.bg}">
+    <span class="drag-handle" draggable="true" ondragstart="flatDragStart(event,'${escHtml(project.id)}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+    <span class="project-type-tag">Project</span>
+    <a class="initiative-name" href="${escHtml(project.url || '#')}" target="_blank" rel="noopener"
+       style="font-weight:500;text-decoration:none;color:var(--text)" title="${escHtml(project.name)}">${escHtml(project.name)}</a>
+    <div class="initiative-meta">
+      ${statusBadgeHtml(project.state)}
+      ${teams ? `<span class="team-tag">${escHtml(teams)}</span>` : ''}
+      ${parentLabel}
+      ${sectionPickerHtml(project.id)}
+    </div>
+  </div>
+</section>`;
+}
+
+// Renders a single collapsible "Projects" card grouping all direct L1 projects in flat view.
+function renderFlatProjectsGroup(projects, parentName, parentId) {
+  const syntheticId = `${parentId}__projects`;
+  const isExpanded = expandedInit.has(syntheticId);
+  const color = getInitColor(parentId);
+  const truncate = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : str;
+  const parentLabel = parentName
+    ? `<span class="parent-label" title="${escHtml(parentName)}" style="background:${color.bg};color:${color.text};border-color:${color.border}">${escHtml(truncate(parentName, 20))}</span>`
+    : '';
+  return `
+<section class="sub-initiative-block" data-id="${escHtml(syntheticId)}" data-flat-key="${escHtml(syntheticId)}" style="border-left:3px dashed ${color.border}"
+  ondragover="flatDragOver(event)" ondrop="flatDrop(event,'${escHtml(syntheticId)}')" ondragend="flatDragEnd()">
+  <div class="sub-initiative-header${isExpanded ? '' : ' collapsed'}" onclick="toggleInitiative('${escHtml(syntheticId)}')">
+    <span class="drag-handle" draggable="true" ondragstart="flatDragStart(event,'${escHtml(syntheticId)}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+    <span class="chevron${isExpanded ? '' : ' collapsed'}">▼</span>
+    <span class="sub-initiative-name">Projects</span>
+    <div class="initiative-meta">
+      <span class="project-count-badge">${projects.length} project${projects.length !== 1 ? 's' : ''}</span>
+      ${parentLabel}
+      ${sectionPickerHtml(syntheticId)}
+    </div>
+  </div>
+  <div class="sub-initiative-body${isExpanded ? '' : ' collapsed'}" id="init-body-${escHtml(syntheticId)}">
+    ${projects.map(p => renderProject(p)).join('')}
+  </div>
+</section>`;
+}
+
+function allProjectsInSubtree(initiative) {
+  const direct = initiative.projects?.nodes || [];
+  const fromChildren = (initiative.children || []).flatMap(c => allProjectsInSubtree(c));
+  return [...direct, ...fromChildren];
+}
+
+// Visible (filtered) project count across the full subtree — used for pills.
+function visibleProjectsInSubtree(initiative) {
+  const direct = getVisibleProjects(initiative);
+  const fromChildren = (initiative.children || []).filter(initiativeMatchesFilters).flatMap(c => visibleProjectsInSubtree(c));
+  return [...direct, ...fromChildren];
+}
+
+
+function initiativeMatchesFilters(init) {
+  if (!filters.showCancelled && init.status === 'cancelled') return false;
+  // Always apply allowlist: hide initiative if it has projects but none are on an allowed team
+  const allProjects = allProjectsInSubtree(init);
+  if (allProjects.length > 0) {
+    const hasAllowedProject = allProjects.some(p => {
+      const teams = p.teams?.nodes || [];
+      return teams.length === 0 || teams.some(t => isAllowedTeam(t.name));
+    });
+    if (!hasAllowedProject) return false;
+  }
+  if (selectedTeamIds.size > 0) {
+    // inclusion: show initiative only if at least one project belongs to a selected team or its children
+    const effectiveIds = getEffectiveSelectedTeamIds();
+    const hasVisibleProject = allProjects.some(p =>
+      (p.teams?.nodes || []).some(t => effectiveIds.has(t.id)));
+    if (!hasVisibleProject) return false;
+  }
+  if (filters.search) {
+    const q = filters.search;
+    const nameMatch = init.name?.toLowerCase().includes(q);
+    const childMatch = (init.children || []).some(c => initiativeMatchesFilters(c));
+    const projMatch = allProjectsInSubtree(init).some(p => p.name?.toLowerCase().includes(q));
+    if (!nameMatch && !childMatch && !projMatch) return false;
+  }
+  return true;
+}
+
+// Returns the set of team IDs that should be treated as "selected" —
+// the explicitly selected teams plus ALL their descendants (BFS over teamChildMap).
+// Result is cached per render pass and invalidated when selectedTeamIds or allTeams changes.
+let _effectiveTeamIdsCache = null;
+function getEffectiveSelectedTeamIds() {
+  if (_effectiveTeamIdsCache) return _effectiveTeamIdsCache;
+  if (selectedTeamIds.size === 0) return (_effectiveTeamIdsCache = new Set());
+  const result = new Set(selectedTeamIds);
+  const queue = [...selectedTeamIds];
+  while (queue.length) {
+    const children = teamChildMap.get(queue.shift()) || new Set();
+    for (const childId of children) {
+      if (!result.has(childId)) { result.add(childId); queue.push(childId); }
+    }
+  }
+  return (_effectiveTeamIdsCache = result);
+}
+
+function getFilteredInitiatives() {
+  return initiatives.filter(i => {
+    if (selectedInitiativeIds.size > 0 && !selectedInitiativeIds.has(i.id)) return false;
+    return initiativeMatchesFilters(i);
+  });
+}
+
+function getVisibleProjects(initiative) {
+  return (initiative.projects?.nodes || []).filter(p => {
+    if (!filters.showCancelled && (p.state === 'cancelled' || p.canceledAt)) return false;
+    const teams = p.teams?.nodes || [];
+    // Always apply the allowlist — hide projects with no allowed team
+    if (teams.length > 0 && !teams.some(t => isAllowedTeam(t.name))) return false;
+    // Apply team picker selection (inclusion filter, cascades to child teams)
+    if (selectedTeamIds.size > 0 && !teams.some(t => getEffectiveSelectedTeamIds().has(t.id))) return false;
+    if (filters.search && !p.name?.toLowerCase().includes(filters.search) &&
+        !initiative.name?.toLowerCase().includes(filters.search)) return false;
+    return true;
+  });
+}
+
+function renderInitiative(initiative, depth = 0, parentId = null) {
+  const id = initiative.id;
+  const isExpanded = expandedInit.has(id);
+  const projects = getVisibleProjects(initiative);
+  // Always sort this initiative's children using its own ID as the key
+  const filteredChildren = (initiative.children || []).filter(initiativeMatchesFilters);
+  const orderedChildren = applySubInitOrder(filteredChildren, id);
+  const pct = initiativeProgress(initiative);
+  const fillClass = pct >= 100 ? 'done' : '';
+  const totalProjects = visibleProjectsInSubtree(initiative).length;
+  const hasContent = projects.length > 0 || orderedChildren.length > 0;
+  const dateStr = '';
+
+  if (depth === 0) {
+    const color = getInitColor(id);
+    return `
+<section class="initiative-block" data-id="${escHtml(id)}"
+  style="border-left: 3px solid ${color.border}"
+  ondragover="initDragOver(event)" ondrop="initDrop(event,'${escHtml(id)}')" ondragend="initDragEnd()">
+  <div class="initiative-header${isExpanded ? '' : ' collapsed'}" style="background:${color.bg}" onclick="toggleInitiative('${escHtml(id)}')">
+    <span class="drag-handle" draggable="true" ondragstart="initDragStart(event,'${escHtml(id)}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+    <span class="chevron${isExpanded ? '' : ' collapsed'}">▼</span>
+    <span class="initiative-name" title="${escHtml(initiative.name)}">${escHtml(initiative.name)}</span>
+    <div class="initiative-meta">
+      ${statusBadgeHtml(initiative.status)}
+      ${dateStr}
+      ${orderedChildren.length > 0 ? `<span class="project-count-badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${orderedChildren.length} initiative${orderedChildren.length !== 1 ? 's' : ''}</span>` : ''}
+      <span class="project-count-badge">${totalProjects} project${totalProjects !== 1 ? 's' : ''}</span>
+    </div>
+  </div>
+  <div class="initiative-body${isExpanded ? '' : ' collapsed'}" id="init-body-${escHtml(id)}"
+    ondragover="subInitDragOver(event,'${escHtml(id)}');projDragOver(event,'${escHtml(id)}')"
+    ondrop="event.stopPropagation()">
+    ${!hasContent ? '<p class="no-projects-msg">No projects linked to this initiative.</p>' : ''}
+    ${orderedChildren.map(c => renderInitiative(c, 1, id)).join('')}
+    ${applyProjOrder(projects, id).map(p => renderProject(p, id)).join('')}
+  </div>
+</section>`;
+  }
+
+  return `
+<div class="sub-initiative-block" data-id="${escHtml(id)}" data-parent-id="${escHtml(parentId || '')}"
+  ondragover="subInitDragOver(event,'${escHtml(parentId || '')}')"
+  ondrop="subInitDrop(event,'${escHtml(id)}','${escHtml(parentId || '')}')"
+  ondragend="subInitDragEnd()">
+  <div class="sub-initiative-header${isExpanded ? '' : ' collapsed'}" onclick="toggleInitiative('${escHtml(id)}')">
+    <span class="drag-handle" draggable="true" ondragstart="subInitDragStart(event,'${escHtml(id)}','${escHtml(parentId || '')}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+    <span class="chevron${isExpanded ? '' : ' collapsed'}">▼</span>
+    <span class="sub-initiative-name" title="${escHtml(initiative.name)}">${escHtml(initiative.name)}</span>
+    <div class="initiative-meta">
+      ${statusBadgeHtml(initiative.status)}
+      ${dateStr}
+      ${orderedChildren.length > 0 ? `<span class="project-count-badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${orderedChildren.length} initiative${orderedChildren.length !== 1 ? 's' : ''}</span>` : ''}
+    </div>
+  </div>
+  <div class="sub-initiative-body${isExpanded ? '' : ' collapsed'}" id="init-body-${escHtml(id)}"
+    ondragover="projDragOver(event,'${escHtml(id)}')"
+    ondrop="subInitDrop(event,'${escHtml(id)}','${escHtml(parentId || '')}')">
+    ${!hasContent ? '<p class="no-projects-msg">No projects linked.</p>' : ''}
+    ${orderedChildren.map(c => renderInitiative(c, depth + 1, id)).join('')}
+    ${applyProjOrder(projects, id).map(p => renderProject(p, id)).join('')}
+  </div>
+</div>`;
+}
+
+function renderProject(project, parentId = null) {
+  const id = project.id;
+  const teams = (project.teams?.nodes || []).filter(t => !t.name.toLowerCase().includes('feedback')).map(t => t.name).join(', ');
+  const sc = STATUS_STYLES[project.state] || STATUS_STYLES.planned;
+  const dragAttrs = parentId ? ` ondragover="projDragOver(event,'${escHtml(parentId)}')" ondrop="projDrop(event,'${escHtml(id)}','${escHtml(parentId)}')" ondragend="projDragEnd()"` : '';
+  const dragHandle = parentId ? `<span class="drag-handle" draggable="true" ondragstart="projDragStart(event,'${escHtml(id)}','${escHtml(parentId)}')" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>` : '';
+
+  return `
+<div class="project-card" data-project-id="${escHtml(id)}" style="border-left:3px solid ${sc.border}"${dragAttrs}>
+  <div class="project-card-header" style="background:${sc.bg}">
+    ${dragHandle}<a class="project-name-link" href="${escHtml(project.url || '#')}" target="_blank" rel="noopener"
+       title="${escHtml(project.name)}">${escHtml(project.name)}</a>
+    <div class="project-meta">
+      ${statusBadgeHtml(project.state)}
+      ${teams ? `<span class="team-tag">${escHtml(teams)}</span>` : ''}
+    </div>
+  </div>
+</div>`;
+}
+
+function renderIssueList(projectId, issueData) {
+  if (!issueData) {
+    return `<div class="issue-loading"><div class="spinner-sm"></div> Loading issues…</div>`;
+  }
+  const issues = issueData.nodes || [];
+  if (issues.length === 0) {
+    return `<p class="no-issues-msg">No open issues in this project.</p>`;
+  }
+  const rows = issues.map(issue => {
+    const isDone = issue.state?.type === 'completed' || !!issue.completedAt;
+    const stateColor = issue.state?.color || '#9ca3af';
+    const dueStr = issue.dueDate ? formatShortDate(issue.dueDate) : '';
+    const dueOverdue = issue.dueDate && isOverdue(issue.dueDate) && !isDone;
+
+    return `<div class="issue-row">
+  <span class="state-dot" style="background:${escHtml(stateColor)}"></span>
+  <a class="issue-identifier" href="${escHtml(issue.url || '#')}" target="_blank" rel="noopener">${escHtml(issue.identifier)}</a>
+  <span class="issue-title${isDone ? ' done' : ''}" title="${escHtml(issue.title)}">${escHtml(issue.title)}</span>
+  <span class="issue-state-badge" style="${stateBadgeStyle(issue.state)}">${escHtml(issue.state?.name || '')}</span>
+  ${issue.assignee ? assigneeHtml(issue.assignee) : ''}
+  ${dueStr ? `<span class="issue-due${dueOverdue ? ' overdue' : ''}">${escHtml(dueStr)}</span>` : ''}
+</div>`;
+  }).join('');
+
+  const loadMoreBtn = issueData.hasNextPage
+    ? `<button class="load-more-btn" onclick="loadMoreIssues('${escHtml(projectId)}')">Load more issues…</button>`
+    : '';
+
+  return rows + loadMoreBtn;
+}
+
+// ── Toggle expand/collapse ─────────────────────────────────────────────────────
+function toggleExpandAll() {
+  const allIds = [...document.querySelectorAll('#initiative-list [data-id]')].map(el => el.dataset.id);
+  const allExpanded = allIds.length > 0 && allIds.every(id => expandedInit.has(id));
+  if (allExpanded) {
+    allIds.forEach(id => expandedInit.delete(id));
+  } else {
+    allIds.forEach(id => expandedInit.add(id));
+  }
+  saveExpandState();
+  renderRoadmap();
+}
+
+function updateExpandAllBtn() {
+  const btn = document.getElementById('expand-all-btn');
+  if (!btn) return;
+  const allIds = [...document.querySelectorAll('#initiative-list [data-id]')].map(el => el.dataset.id);
+  const allExpanded = allIds.length > 0 && allIds.every(id => expandedInit.has(id));
+  btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
+}
+
+function toggleInitiative(id) {
+  if (expandedInit.has(id)) {
+    expandedInit.delete(id);
+  } else {
+    expandedInit.add(id);
+  }
+  saveExpandState();
+
+  const block = document.querySelector(`[data-id="${CSS.escape(id)}"]`);
+  if (!block) return;
+
+  const isNowExpanded = expandedInit.has(id);
+  const header = block.firstElementChild;
+  const body = block.children[1];
+  const chevron = header.querySelector('.chevron');
+
+  header.classList.toggle('collapsed', !isNowExpanded);
+  body.classList.toggle('collapsed', !isNowExpanded);
+  chevron.classList.toggle('collapsed', !isNowExpanded);
+}
+
+function toggleProject(event, projectId) {
+  // Don't toggle when clicking the project name link
+  if (event.target.classList.contains('project-name-link')) return;
+
+  const wasExpanded = expandedProjects.has(projectId);
+  if (wasExpanded) {
+    expandedProjects.delete(projectId);
+  } else {
+    expandedProjects.add(projectId);
+  }
+  saveExpandState();
+
+  const card = document.querySelector(`.project-card[data-project-id="${CSS.escape(projectId)}"]`);
+  if (!card) return;
+
+  const header = card.querySelector('.project-card-header');
+  const issuesDiv = card.querySelector('.project-issues');
+  const chevron = header.querySelector('.chevron');
+
+  const isNowExpanded = expandedProjects.has(projectId);
+  header.classList.toggle('collapsed', !isNowExpanded);
+  chevron.classList.toggle('collapsed', !isNowExpanded);
+
+  if (isNowExpanded) {
+    issuesDiv.classList.remove('collapsed');
+    // If we don't have issue data yet, render loading state and fetch
+    if (!issueCache.has(projectId)) {
+      issuesDiv.innerHTML = `<div class="issue-loading"><div class="spinner-sm"></div> Loading issues…</div>`;
+      fetchProjectIssues(projectId);
+    }
+  } else {
+    issuesDiv.classList.add('collapsed');
+  }
+}
+
+// ── Fetch issues ───────────────────────────────────────────────────────────────
+async function fetchProjectIssues(projectId, cursor = null) {
+  try {
+    const data = await gql(PROJECT_ISSUES_QUERY, { projectId, cursor });
+    const issuesConn = data?.project?.issues;
+    if (!issuesConn) return;
+
+    const existing = issueCache.get(projectId);
+    const nodes = existing ? existing.nodes.concat(issuesConn.nodes) : issuesConn.nodes;
+    issueCache.set(projectId, {
+      nodes,
+      hasNextPage: issuesConn.pageInfo?.hasNextPage || false,
+      cursor: issuesConn.pageInfo?.endCursor || null,
+    });
+
+    // Re-render just this project's issue list if it's still expanded
+    const issuesDiv = document.getElementById(`proj-issues-${projectId}`);
+    if (issuesDiv && expandedProjects.has(projectId)) {
+      issuesDiv.innerHTML = renderIssueList(projectId, issueCache.get(projectId));
+    }
+  } catch (err) {
+    const issuesDiv = document.getElementById(`proj-issues-${projectId}`);
+    if (issuesDiv) {
+      issuesDiv.innerHTML = `<p style="font-size:12px;color:var(--red);padding:8px 0">Failed to load issues: ${escHtml(err.message)}</p>`;
+    }
+  }
+}
+
+async function loadMoreIssues(projectId) {
+  const existing = issueCache.get(projectId);
+  if (!existing?.hasNextPage) return;
+  const issuesDiv = document.getElementById(`proj-issues-${projectId}`);
+  if (issuesDiv) {
+    // Show loading at bottom
+    const loadMoreBtn = issuesDiv.querySelector('.load-more-btn');
+    if (loadMoreBtn) loadMoreBtn.textContent = 'Loading…';
+  }
+  await fetchProjectIssues(projectId, existing.cursor);
+}
+
+// ── Progress calculations ──────────────────────────────────────────────────────
+function initiativeProgress(initiative) {
+  const projects = allProjectsInSubtree(initiative);
+  if (projects.length === 0) return 0;
+  const sum = projects.reduce((acc, p) => acc + (typeof p.progress === 'number' ? p.progress : 0), 0);
+  return Math.round((sum / projects.length) * 100);
+}
+
+function projectProgress(project) {
+  if (project.state === 'completed') return 100;
+  if (project.state === 'cancelled') return 0;
+  if (typeof project.progress === 'number') return Math.round(project.progress * 100);
+  return 0;
+}
+
+
+// ── Status badge HTML ──────────────────────────────────────────────────────────
+const STATUS_STYLES = {
+  // Initiative statuses
+  planned:    { bg: '#f3f4f6', border: '#d1d5db', text: '#374151', label: 'Planned' },
+  inProgress: { bg: '#fef9c3', border: '#fde047', text: '#854d0e', label: 'In Progress' },
+  paused:     { bg: '#ffedd5', border: '#fdba74', text: '#9a3412', label: 'Paused' },
+  completed:  { bg: '#dcfce7', border: '#86efac', text: '#166534', label: 'Completed' },
+  cancelled:  { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b', label: 'Cancelled' },
+  // Project statuses (Linear uses these string values)
+  backlog:    { bg: '#f3f4f6', border: '#d1d5db', text: '#374151', label: 'Backlog' },
+  started:    { bg: '#fef9c3', border: '#fde047', text: '#854d0e', label: 'In Progress' },
+};
+
+function statusBadgeHtml(status) {
+  const s = STATUS_STYLES[status];
+  if (!s) return '';
+  return `<span class="status-badge" style="background:${s.bg};border-color:${s.border};color:${s.text}">${s.label}</span>`;
+}
+
+function stateBadgeStyle(state) {
+  if (!state) return 'background:#f3f4f6;color:#6b7280;border-color:#e1e4e8';
+  const color = state.color || '#9ca3af';
+  return `background:${color}22;color:${color};border-color:${color}55`;
+}
+
+// ── Assignee HTML ──────────────────────────────────────────────────────────────
+function assigneeHtml(assignee) {
+  if (!assignee) return '';
+  if (assignee.avatarUrl) {
+    return `<span class="assignee-chip"><img src="${escHtml(assignee.avatarUrl)}" alt="${escHtml(assignee.name)}" title="${escHtml(assignee.name)}" /></span>`;
+  }
+  const initials = (assignee.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  return `<span class="assignee-chip"><span class="assignee-initials" title="${escHtml(assignee.name)}">${escHtml(initials)}</span></span>`;
+}
+
+// ── Date helpers ───────────────────────────────────────────────────────────────
+function formatQuarter(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const q = Math.ceil((d.getMonth() + 1) / 3);
+  return `Q${q} ${d.getFullYear()}`;
+}
+
+function formatMonth(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function formatShortDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function isOverdue(iso) {
+  if (!iso) return false;
+  return new Date(iso) < new Date();
+}
+
+// ── Cache helpers ─────────────────────────────────────────────────────────────
+function updateCacheLabel(ts) {
+  const el = document.getElementById('cache-label');
+  if (!el || !ts) return;
+  const mins = Math.round((Date.now() - ts) / 60000);
+  el.textContent = mins < 1 ? 'just loaded' : `cached ${mins}m ago`;
+}
+
+// ── Expand state persistence ───────────────────────────────────────────────────
+function saveExpandState() {
+  localStorage.setItem(ROADMAP_EXPAND_INIT_KEY, JSON.stringify([...expandedInit]));
+  localStorage.setItem(ROADMAP_EXPAND_PROJ_KEY, JSON.stringify([...expandedProjects]));
+}
+
+function loadExpandState() {
+  try {
+    const i = JSON.parse(localStorage.getItem(ROADMAP_EXPAND_INIT_KEY) || '[]');
+    expandedInit = new Set(i);
+  } catch { expandedInit = new Set(); }
+  try {
+    const p = JSON.parse(localStorage.getItem(ROADMAP_EXPAND_PROJ_KEY) || '[]');
+    expandedProjects = new Set(p);
+  } catch { expandedProjects = new Set(); }
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function showLoading(show) {
+  document.getElementById('loading-state').classList.toggle('hidden', !show);
+  document.getElementById('initiative-list').classList.toggle('hidden', show);
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function hideError() {
+  document.getElementById('error-banner').classList.add('hidden');
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const id = 'toast-' + (++toastIdCounter);
+  const div = document.createElement('div');
+  div.className = 'toast';
+  div.id = id;
+  div.innerHTML = `<span>${escHtml(msg)}</span><button class="toast-dismiss" onclick="dismissToast('${id}')" title="Dismiss">✕</button>`;
+  container.appendChild(div);
+  requestAnimationFrame(() => div.classList.add('show'));
+  setTimeout(() => dismissToast(id), 4000);
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('show');
+  setTimeout(() => el.remove(), 200);
+}
+
+// ── Custom order / drag-and-drop ──────────────────────────────────────────────
+function loadCustomOrder() {
+  try { customOrder = JSON.parse(localStorage.getItem(ROADMAP_ORDER_KEY) || '[]'); }
+  catch { customOrder = []; }
+}
+
+function saveCustomOrder() {
+  localStorage.setItem(ROADMAP_ORDER_KEY, JSON.stringify(customOrder));
+}
+
+function applyCustomOrder(inits) {
+  if (!customOrder.length) return inits;
+  return [...inits].sort((a, b) => {
+    const ai = customOrder.indexOf(a.id);
+    const bi = customOrder.indexOf(b.id);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
+
+function initDragStart(event, id) {
+  dragSrcId = id;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', id);
+  const section = document.querySelector(`.initiative-block[data-id="${CSS.escape(id)}"]`);
+  if (section) {
+    event.dataTransfer.setDragImage(section, 24, 24);
+    setTimeout(() => section.classList.add('dragging'), 0);
+  }
+  event.stopPropagation();
+}
+
+function initDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const block = event.target.closest('#initiative-list > .initiative-block');
+  if (!block || block.dataset.id === dragSrcId) return;
+  document.querySelectorAll('#initiative-list > .initiative-block')
+    .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const rect = block.getBoundingClientRect();
+  block.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function initDrop(event, targetId) {
+  event.preventDefault();
+  document.querySelectorAll('#initiative-list > .initiative-block')
+    .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  if (!dragSrcId || dragSrcId === targetId) { dragSrcId = null; return; }
+
+  const block = document.querySelector(`.initiative-block[data-id="${CSS.escape(targetId)}"]`);
+  const insertBefore = block && event.clientY < block.getBoundingClientRect().top + block.getBoundingClientRect().height / 2;
+
+  // Use the currently rendered order as base so the result matches what the user sees
+  const current = [...document.querySelectorAll('#initiative-list > .initiative-block')].map(b => b.dataset.id);
+  const next = current.filter(id => id !== dragSrcId);
+  const idx = next.indexOf(targetId);
+  next.splice(insertBefore ? idx : idx + 1, 0, dragSrcId);
+
+  customOrder = next;
+  saveCustomOrder();
+  dragSrcId = null;
+  renderRoadmap();
+}
+
+function initDragEnd() {
+  document.querySelectorAll('#initiative-list > .initiative-block')
+    .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  dragSrcId = null;
+}
+
+// ── Sub-initiative drag-and-drop ───────────────────────────────────────────────
+function loadSubInitOrder() {
+  try { subInitOrder = JSON.parse(localStorage.getItem(ROADMAP_SUB_ORDER_KEY) || '{}'); }
+  catch { subInitOrder = {}; }
+}
+
+function saveSubInitOrder() {
+  localStorage.setItem(ROADMAP_SUB_ORDER_KEY, JSON.stringify(subInitOrder));
+}
+
+function applySubInitOrder(children, parentId) {
+  const order = subInitOrder[parentId];
+  if (!order || !order.length) return children;
+  return [...children].sort((a, b) => {
+    const ai = order.indexOf(a.id);
+    const bi = order.indexOf(b.id);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
+
+function subInitDragStart(event, id, parentId) {
+  subDragSrcId = id;
+  subDragParentId = parentId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', id);
+  const block = document.querySelector(`.sub-initiative-block[data-id="${CSS.escape(id)}"]`);
+  if (block) {
+    event.dataTransfer.setDragImage(block, 24, 12);
+    setTimeout(() => block.classList.add('dragging'), 0);
+  }
+  event.stopPropagation();
+}
+
+function subInitDragOver(event, parentId) {
+  if (subDragParentId !== parentId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.dataTransfer.dropEffect = 'move';
+  const container = document.getElementById(`init-body-${CSS.escape(parentId)}`);
+  if (!container) return;
+  // Use direct child lookup to avoid matching deeply-nested blocks from different parents
+  const block = [...container.querySelectorAll(':scope > .sub-initiative-block')]
+    .find(b => b === event.target || b.contains(event.target));
+  if (!block || block.dataset.id === subDragSrcId) return;
+  container.querySelectorAll(':scope > .sub-initiative-block')
+    .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const rect = block.getBoundingClientRect();
+  block.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function subInitDrop(event, targetId, parentId) {
+  event.preventDefault();
+  const container = document.getElementById(`init-body-${CSS.escape(parentId)}`);
+  if (container) {
+    container.querySelectorAll(':scope > .sub-initiative-block')
+      .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  }
+  if (!subDragSrcId || subDragSrcId === targetId || subDragParentId !== parentId) {
+    subDragSrcId = null; subDragParentId = null; return;
+  }
+  event.stopPropagation();
+  const block = document.querySelector(`.sub-initiative-block[data-id="${CSS.escape(targetId)}"]`);
+  const insertBefore = block && event.clientY < block.getBoundingClientRect().top + block.getBoundingClientRect().height / 2;
+  const current = [...(container?.querySelectorAll(':scope > .sub-initiative-block') || [])].map(b => b.dataset.id);
+  const next = current.filter(id => id !== subDragSrcId);
+  const idx = next.indexOf(targetId);
+  next.splice(insertBefore ? idx : idx + 1, 0, subDragSrcId);
+  subInitOrder[parentId] = next;
+  saveSubInitOrder();
+  subDragSrcId = null;
+  subDragParentId = null;
+  renderRoadmap();
+}
+
+function subInitDragEnd() {
+  document.querySelectorAll('.sub-initiative-block')
+    .forEach(b => b.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  subDragSrcId = null;
+  subDragParentId = null;
+}
+
+// ── Project drag-and-drop (hierarchy view) ────────────────────────────────────
+function loadProjOrder() {
+  try { projOrder = JSON.parse(localStorage.getItem(ROADMAP_PROJ_ORDER_KEY) || '{}'); }
+  catch { projOrder = {}; }
+}
+
+function saveProjOrder() {
+  localStorage.setItem(ROADMAP_PROJ_ORDER_KEY, JSON.stringify(projOrder));
+}
+
+function applyProjOrder(projects, parentId) {
+  const order = projOrder[parentId];
+  if (!order || !order.length) return projects;
+  return [...projects].sort((a, b) => {
+    const ai = order.indexOf(a.id);
+    const bi = order.indexOf(b.id);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
+
+function projDragStart(event, projId, parentId) {
+  projDragSrcId = projId;
+  projDragParentId = parentId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', projId);
+  const card = document.querySelector(`.project-card[data-project-id="${CSS.escape(projId)}"]`);
+  if (card) setTimeout(() => card.classList.add('dragging'), 0);
+  event.stopPropagation();
+}
+
+function projDragOver(event, parentId) {
+  if (projDragParentId !== parentId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.dataTransfer.dropEffect = 'move';
+  const container = document.getElementById(`init-body-${CSS.escape(parentId)}`);
+  if (!container) return;
+  const card = [...container.querySelectorAll(':scope > .project-card')]
+    .find(c => c === event.target || c.contains(event.target));
+  if (!card || card.dataset.projectId === projDragSrcId) return;
+  container.querySelectorAll(':scope > .project-card')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const rect = card.getBoundingClientRect();
+  card.classList.add(event.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function projDrop(event, targetProjId, parentId) {
+  event.preventDefault();
+  const container = document.getElementById(`init-body-${CSS.escape(parentId)}`);
+  if (container) {
+    container.querySelectorAll(':scope > .project-card')
+      .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  }
+  if (!projDragSrcId || projDragSrcId === targetProjId || projDragParentId !== parentId) {
+    projDragSrcId = null; projDragParentId = null; return;
+  }
+  event.stopPropagation();
+  const card = document.querySelector(`.project-card[data-project-id="${CSS.escape(targetProjId)}"]`);
+  const insertBefore = card && event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2;
+  const current = [...(container?.querySelectorAll(':scope > .project-card') || [])].map(c => c.dataset.projectId);
+  const next = current.filter(id => id !== projDragSrcId);
+  const idx = next.indexOf(targetProjId);
+  next.splice(insertBefore ? idx : idx + 1, 0, projDragSrcId);
+  projOrder[parentId] = next;
+  saveProjOrder();
+  projDragSrcId = null;
+  projDragParentId = null;
+  renderRoadmap();
+}
+
+function projDragEnd() {
+  document.querySelectorAll('.project-card')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging'));
+  projDragSrcId = null;
+  projDragParentId = null;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── Timeline View ─────────────────────────────────────────────────────────────
+
+function loadTimelineData() {
+  try { timelineData = JSON.parse(localStorage.getItem(ROADMAP_TIMELINE_KEY) || '{}'); }
+  catch { timelineData = {}; }
+}
+function saveTimelineData() {
+  localStorage.setItem(ROADMAP_TIMELINE_KEY, JSON.stringify(timelineData));
+}
+function loadTlOffset() {
+  try { tlMonthOffset = parseInt(localStorage.getItem(ROADMAP_TL_OFFSET_KEY) || '0', 10); }
+  catch { tlMonthOffset = 0; }
+}
+function saveTlOffset() {
+  localStorage.setItem(ROADMAP_TL_OFFSET_KEY, String(tlMonthOffset));
+}
+
+function setTimelineView(val) {
+  timelineView = val;
+  flatView = false;
+  localStorage.setItem(ROADMAP_FLAT_VIEW_KEY, JSON.stringify(false));
+  document.getElementById('view-hierarchy-btn').classList.remove('active');
+  document.getElementById('view-flat-btn').classList.remove('active');
+  document.getElementById('view-timeline-btn').classList.toggle('active', val);
+  renderRoadmap();
+}
+
+function tlGetStart() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + tlMonthOffset, 1);
+}
+function tlGetEnd() {
+  const s = tlGetStart();
+  return new Date(s.getFullYear(), s.getMonth() + TL_N_MONTHS, 1);
+}
+function tlDateToXPx(dateStr, monthW) {
+  const start = tlGetStart();
+  const end = tlGetEnd();
+  const d = new Date(dateStr + 'T00:00:00');
+  return ((d - start) / (end - start)) * monthW * TL_N_MONTHS;
+}
+function tlXToDateStr(x, monthW) {
+  const start = tlGetStart();
+  const end = tlGetEnd();
+  const ms = (x / (monthW * TL_N_MONTHS)) * (end - start);
+  const d = new Date(start.getTime() + ms);
+  return d.toISOString().slice(0, 10);
+}
+
+function tlNavPrev()  { tlMonthOffset -= 3; saveTlOffset(); renderRoadmap(); }
+function tlNavNext()  { tlMonthOffset += 3; saveTlOffset(); renderRoadmap(); }
+function tlNavToday() { tlMonthOffset = 0;  saveTlOffset(); renderRoadmap(); }
+
+function toggleTlLane(l1Id) {
+  if (collapsedTlLanes.has(l1Id)) collapsedTlLanes.delete(l1Id);
+  else collapsedTlLanes.add(l1Id);
+  renderRoadmap();
+}
+function toggleTlUnscheduled(l1Id) {
+  if (expandedUnscheduled.has(l1Id)) expandedUnscheduled.delete(l1Id);
+  else expandedUnscheduled.add(l1Id);
+  renderRoadmap();
+}
+function tlClearItem(event, itemId) {
+  event.stopPropagation();
+  delete timelineData[itemId];
+  saveTimelineData();
+  renderRoadmap();
+}
+
+function renderTlItemRow(id, name, kind, color, monthW) {
+  const dates = timelineData[id];
+  const totalW = monthW * TL_N_MONTHS;
+  const now = new Date();
+  const todayX = tlDateToXPx(now.toISOString().slice(0, 10), monthW);
+  const todayLine = (todayX >= 0 && todayX <= totalW)
+    ? `<div class="tl-today-line" style="left:${todayX.toFixed(1)}px"></div>` : '';
+
+  let barHtml = '';
+  if (dates?.start && dates?.end) {
+    const x = tlDateToXPx(dates.start, monthW);
+    const w = Math.max(8, tlDateToXPx(dates.end, monthW) - x);
+    const safeId = escHtml(id);
+    barHtml = `
+      <div class="tl-bar" data-tl-bar="${safeId}"
+           style="left:${x.toFixed(1)}px;width:${w.toFixed(1)}px"
+           onmousedown="tlBarMouseDown(event,'${safeId}')">
+        <div class="tl-bar-handle l" onmousedown="tlResizeMouseDown(event,'${safeId}','l')"></div>
+        <div class="tl-bar-inner" style="background:${escHtml(color)}">
+          <span class="tl-bar-label">${escHtml(name)}</span>
+          <button class="tl-bar-clear" onclick="tlClearItem(event,'${safeId}')">×</button>
+        </div>
+        <div class="tl-bar-handle r" onmousedown="tlResizeMouseDown(event,'${safeId}','r')"></div>
+      </div>`;
+  }
+
+  const kindTag = kind === 'project' ? 'PROJ' : 'INIT';
+  const safeId = escHtml(id);
+  return `
+    <div class="tl-item-row">
+      <div class="tl-label-cell" style="width:${TL_LABEL_W}px">
+        <span class="tl-kind-tag">${kindTag}</span>
+        <span class="tl-label-text" title="${escHtml(name)}">${escHtml(name)}</span>
+      </div>
+      <div class="tl-row-grid${dates ? ' has-bar' : ''}" style="width:${totalW}px"
+           onmousedown="tlDrawMouseDown(event,'${safeId}')">
+        ${todayLine}${barHtml}
+      </div>
+    </div>`;
+}
+
+function renderTimelineHtml(ordered) {
+  const monthW = TL_MONTH_W_MIN;
+  tlMonthWidth = monthW;
+  const totalW = monthW * TL_N_MONTHS;
+  const start = tlGetStart();
+  const end = tlGetEnd();
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+
+  let monthCells = '';
+  for (let m = 0; m < TL_N_MONTHS; m++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + m, 1);
+    const isCur = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    monthCells += `<div class="tl-month-cell${isCur ? ' tl-cur-month' : ''}" style="width:${monthW}px">${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}</div>`;
+  }
+
+  const endM = new Date(end.getFullYear(), end.getMonth() - 1, 1);
+  const rangeLabel = `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()} – ${MONTH_NAMES[endM.getMonth()]} ${endM.getFullYear()}`;
+
+  let html = `
+<div class="tl-wrapper" style="--tl-month-w:${monthW}px">
+  <div class="tl-nav">
+    <button class="btn" onclick="tlNavPrev()">← Prev</button>
+    <button class="btn" onclick="tlNavToday()">Today</button>
+    <button class="btn" onclick="tlNavNext()">Next →</button>
+    <span class="tl-nav-range">${rangeLabel}</span>
+  </div>
+  <div class="tl-header" style="top:var(--header-height)">
+    <div class="tl-header-corner" style="width:${TL_LABEL_W}px;height:36px"></div>
+    <div class="tl-months">${monthCells}</div>
+  </div>`;
+
+  for (const l1 of ordered) {
+    const color = l1.color || '#5e6ad2';
+    const isExpanded = !collapsedTlLanes.has(l1.id);
+    const chevron = isExpanded ? '▾' : '▸';
+
+    const l2s = (l1.children || []).filter(initiativeMatchesFilters);
+    const orderedL2s = applySubInitOrder(l2s, l1.id);
+    const directProjects = getVisibleProjects(l1);
+
+    const allItems = [
+      ...orderedL2s.map(i => ({ id: i.id, name: i.name, kind: 'initiative', color })),
+      ...directProjects.map(p => ({ id: p.id, name: p.name, kind: 'project', color: '#6366f1' }))
+    ];
+
+    const scheduled   = allItems.filter(it => timelineData[it.id]);
+    const unscheduled = allItems.filter(it => !timelineData[it.id]);
+
+    const safeL1Id = escHtml(l1.id);
+    html += `
+  <div class="tl-lane">
+    <div class="tl-lane-hdr" onclick="toggleTlLane('${safeL1Id}')">
+      <div class="tl-label-cell" style="width:${TL_LABEL_W}px;background:#f9fafb;cursor:pointer">
+        <span style="margin-right:4px;font-size:11px;color:var(--text-muted)">${chevron}</span>
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${escHtml(color)};flex-shrink:0;margin-right:4px"></span>
+        <span class="tl-lane-label" style="color:${escHtml(color)}">${escHtml(l1.name)}</span>
+      </div>
+      <div class="tl-lane-hdr-bg" style="width:${totalW}px"></div>
+    </div>`;
+
+    if (isExpanded) {
+      for (const it of scheduled) {
+        html += renderTlItemRow(it.id, it.name, it.kind, it.color, monthW);
+      }
+
+      if (unscheduled.length > 0) {
+        const isUnschedOpen = expandedUnscheduled.has(l1.id);
+        const uChevron = isUnschedOpen ? '▾' : '▸';
+        html += `
+      <div class="tl-unsched-hdr" onclick="toggleTlUnscheduled('${safeL1Id}')">
+        <div class="tl-label-cell" style="width:${TL_LABEL_W}px;cursor:pointer">
+          <span style="font-size:10px;margin-right:4px;color:var(--text-muted)">${uChevron}</span>
+          <span class="tl-unsched-label">Unscheduled (${unscheduled.length})</span>
+        </div>
+        <div style="flex:1"></div>
+      </div>`;
+        if (isUnschedOpen) {
+          html += `<div class="tl-unsched-rows">`;
+          for (const it of unscheduled) {
+            html += renderTlItemRow(it.id, it.name, it.kind, it.color, monthW);
+          }
+          html += `</div>`;
+        }
+      }
+    }
+
+    html += `</div>`; // end .tl-lane
+  }
+
+  html += `</div>`; // end .tl-wrapper
+  return html;
+}
+
+// ── Timeline mouse interactions ────────────────────────────────────────────────
+
+function tlDrawMouseDown(event, itemId) {
+  if (timelineData[itemId]) return; // bar exists, handled by tlBarMouseDown
+  event.preventDefault();
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const ghost = document.createElement('div');
+  ghost.className = 'tl-bar-ghost';
+  ghost.style.left = x + 'px';
+  ghost.style.width = '0px';
+  event.currentTarget.appendChild(ghost);
+  tlDrag = { mode: 'draw', itemId, startX: event.clientX, rect, ghostEl: ghost };
+}
+
+function tlBarMouseDown(event, itemId) {
+  event.stopPropagation();
+  const d = timelineData[itemId];
+  if (!d) return;
+  event.preventDefault();
+  const rect = event.currentTarget.closest('.tl-row-grid').getBoundingClientRect();
+  tlDrag = { mode: 'move', itemId, startX: event.clientX,
+             origStart: d.start, origEnd: d.end, rect };
+}
+
+function tlResizeMouseDown(event, itemId, side) {
+  event.stopPropagation();
+  const d = timelineData[itemId];
+  if (!d) return;
+  event.preventDefault();
+  const rect = event.currentTarget.closest('.tl-row-grid').getBoundingClientRect();
+  tlDrag = { mode: 'resize', itemId, startX: event.clientX, side,
+             origStart: d.start, origEnd: d.end, rect };
+}
+
+function tlMouseMove(event) {
+  if (!tlDrag) return;
+  const { mode, itemId, startX, rect } = tlDrag;
+  const dx = event.clientX - startX;
+  const totalW = tlMonthWidth * TL_N_MONTHS;
+
+  if (mode === 'draw') {
+    const x0 = startX - rect.left;
+    const x1 = Math.max(0, Math.min(totalW, event.clientX - rect.left));
+    tlDrag.ghostEl.style.left  = Math.min(x0, x1) + 'px';
+    tlDrag.ghostEl.style.width = Math.abs(x1 - x0) + 'px';
+  } else if (mode === 'move') {
+    const bar = document.querySelector(`[data-tl-bar="${CSS.escape(itemId)}"]`);
+    if (bar) bar.style.transform = `translateX(${dx}px)`;
+  } else if (mode === 'resize') {
+    const bar = document.querySelector(`[data-tl-bar="${CSS.escape(itemId)}"]`);
+    if (bar) {
+      const origL = tlDateToXPx(tlDrag.origStart, tlMonthWidth);
+      const origW = tlDateToXPx(tlDrag.origEnd, tlMonthWidth) - origL;
+      if (tlDrag.side === 'r') {
+        bar.style.width = Math.max(8, origW + dx) + 'px';
+      } else {
+        bar.style.left  = (origL + dx) + 'px';
+        bar.style.width = Math.max(8, origW - dx) + 'px';
+      }
+    }
+  }
+}
+
+function tlMouseUp(event) {
+  if (!tlDrag) return;
+  const { mode, itemId, startX, rect } = tlDrag;
+  const dx = event.clientX - startX;
+  const totalW = tlMonthWidth * TL_N_MONTHS;
+  const msRange = tlGetEnd() - tlGetStart();
+
+  if (mode === 'draw') {
+    tlDrag.ghostEl.remove();
+    const x0 = startX - rect.left;
+    const x1 = Math.max(0, Math.min(totalW, event.clientX - rect.left));
+    if (Math.abs(x1 - x0) > 4) {
+      timelineData[itemId] = {
+        start: tlXToDateStr(Math.min(x0, x1), tlMonthWidth),
+        end:   tlXToDateStr(Math.max(x0, x1), tlMonthWidth)
+      };
+      saveTimelineData();
+      renderRoadmap();
+    }
+  } else if (mode === 'move') {
+    const msDelta = (dx / totalW) * msRange;
+    const orig = timelineData[itemId];
+    if (orig && Math.abs(dx) > 2) {
+      timelineData[itemId] = {
+        start: new Date(new Date(orig.start + 'T00:00:00').getTime() + msDelta).toISOString().slice(0, 10),
+        end:   new Date(new Date(orig.end   + 'T00:00:00').getTime() + msDelta).toISOString().slice(0, 10)
+      };
+      saveTimelineData();
+      renderRoadmap();
+    } else {
+      const bar = document.querySelector(`[data-tl-bar="${CSS.escape(itemId)}"]`);
+      if (bar) bar.style.transform = '';
+    }
+  } else if (mode === 'resize') {
+    const msDelta = (dx / totalW) * msRange;
+    const orig = timelineData[itemId];
+    if (orig) {
+      if (tlDrag.side === 'r') {
+        timelineData[itemId] = { start: orig.start,
+          end: new Date(new Date(orig.end + 'T00:00:00').getTime() + msDelta).toISOString().slice(0, 10) };
+      } else {
+        timelineData[itemId] = {
+          start: new Date(new Date(orig.start + 'T00:00:00').getTime() + msDelta).toISOString().slice(0, 10),
+          end: orig.end };
+      }
+      saveTimelineData();
+      renderRoadmap();
+    }
+  }
+  tlDrag = null;
+}
+</script>
+</body>
+</html>
