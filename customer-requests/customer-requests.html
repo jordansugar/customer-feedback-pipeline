@@ -2299,6 +2299,7 @@ const CUSTOMER_BUCKETS = [
   { id: 'in-development', label: 'In Development',    note: 'Our engineering team is actively working on this.' },
   { id: 'researching',    label: 'Being Researched',  note: 'Our product team is actively exploring this.' },
   { id: 'on-radar',       label: 'On Our Radar',      note: 'We are tracking interest in this. The more customers who request it, the higher it moves.' },
+  { id: 'declined',       label: 'Declined',          note: 'We have reviewed this feedback and do not plan to pursue it at this time.' },
   { id: 'under-review',   label: 'Needs Review',      note: 'We have received this feedback and are evaluating next steps.' },
 ];
 const CUSTOMER_BUCKET_COLORS = {
@@ -2306,6 +2307,7 @@ const CUSTOMER_BUCKET_COLORS = {
   'researching':    { bg: '#dbeafe', border: '#93c5fd', color: '#1e40af' },
   'under-review':   { bg: '#ffedd5', border: '#fdba74', color: '#9a3412' },
   'on-radar':       { bg: '#f3f4f6', border: '#d1d5db', color: '#374151' },
+  'declined':       { bg: '#fef2f2', border: '#fca5a5', color: '#7f1d1d' },
   'shipped':        { bg: '#dcfce7', border: '#86efac', color: '#166534' },
 };
 
@@ -2340,6 +2342,7 @@ function getCustomerBucket(entry) {
     : (projectStateLabel(entry.obj?.state) || '');
   const statusGroup = STATUS_GROUP_MAP[statusName.toLowerCase()] || 'Other';
   if (statusGroup === 'Done') return 'shipped';
+  if (statusName.toLowerCase() === 'declined') return 'declined';
   if (entry.type === 'issue') {
     const isFbk = (entry.obj?.team?.name || '').toLowerCase().includes('feedback') || /fbk/i.test(entry.obj?.identifier || '');
     if (!isFbk) return 'in-development'; // ALL Engineering issues → In Development (incl. Triage)
@@ -2528,7 +2531,7 @@ function renderCustomerView(needs) {
           buckets.get('__none__').push(e);
         }
       }
-      return [...buckets.entries()]
+      const groups = [...buckets.entries()]
         .sort(([ka, a], [kb, b]) => {
           if (ka === '__none__') return 1;
           if (kb === '__none__') return -1;
@@ -2542,11 +2545,12 @@ function renderCustomerView(needs) {
           });
           const dl = dk === '__none__' ? 'No Domain' : dk;
           const n = bucket.reduce((s, e) => s + e.needs.length, 0);
-          return `<div style="margin-bottom:12px">
+          return `<div>
             <div style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;padding:4px 0 6px">${escHtml(dl)} <span style="font-weight:400">${n} request${n !== 1 ? 's' : ''}</span></div>
             <div style="display:flex;flex-direction:column;gap:8px">${bucket.map(e => renderCustomerCard(e)).join('')}</div>
           </div>`;
         }).join('');
+      return `<div style="display:flex;flex-direction:column;gap:16px">${groups}</div>`;
     }
 
     if (customerSubgroupBy === 'status') {
