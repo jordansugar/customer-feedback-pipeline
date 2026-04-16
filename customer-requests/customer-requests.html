@@ -2296,7 +2296,7 @@ function renderNeeds(preserveExpanded = false) {
 // ── Customer view ─────────────────────────────────────────────────────────
 const CUSTOMER_BUCKETS = [
   { id: 'shipped',        label: 'Shipped',           note: 'We have delivered improvements in this area.' },
-  { id: 'in-development', label: 'In Development',    note: 'Our engineering team is actively working on this.' },
+  { id: 'in-development', label: 'With Engineering',   note: 'Our engineering team is actively working on this.' },
   { id: 'researching',    label: 'Being Researched',  note: 'Our product team is actively exploring this.' },
   { id: 'on-radar',       label: 'On Our Radar',      note: 'We are tracking interest in this. The more customers who request it, the higher it moves.' },
   { id: 'declined',       label: 'Declined',          note: 'We have reviewed this feedback and do not plan to pursue it at this time.' },
@@ -2312,6 +2312,8 @@ const CUSTOMER_BUCKET_COLORS = {
 };
 
 let collapsedCustomerBuckets = new Set(CUSTOMER_BUCKETS.map(b => b.id));
+let collapsedSubsections = new Set();
+let expandedCustomerCards = new Set();
 let customerImportantOnly = false;
 let customerSubgroupBy = null; // null | 'domain' | 'status'
 function toggleCustomerImportantOnly() {
@@ -2325,12 +2327,30 @@ function setCustomerSubgroupBy(v) {
   _syncIssuesViewControls(currentView);
   renderNeeds();
 }
+function toggleSubsection(id) {
+  const body = document.getElementById('ss-body-' + id);
+  const chevron = document.getElementById('ss-chev-' + id);
+  if (!body) return;
+  const isCollapsed = body.style.display === 'none';
+  body.style.display = isCollapsed ? 'flex' : 'none';
+  if (chevron) chevron.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
+  isCollapsed ? collapsedSubsections.delete(id) : collapsedSubsections.add(id);
+}
+function toggleCustomerCardBody(id) {
+  const body = document.getElementById('cc-body-' + id);
+  const chevron = document.getElementById('cc-chev-' + id);
+  if (!body) return;
+  const isCollapsed = body.style.display === 'none';
+  body.style.display = isCollapsed ? '' : 'none';
+  if (chevron) chevron.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
+  isCollapsed ? expandedCustomerCards.add(id) : expandedCustomerCards.delete(id);
+}
 function toggleCustomerBucket(id) {
   const body = document.getElementById('cb-body-' + id);
   const chevron = document.getElementById('cb-chevron-' + id);
   if (!body) return;
   const collapsed = body.style.display === 'none';
-  body.style.display = collapsed ? 'flex' : 'none';
+  body.style.display = collapsed ? 'block' : 'none';
   if (chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
   collapsed ? collapsedCustomerBuckets.delete(id) : collapsedCustomerBuckets.add(id);
 }
@@ -2391,16 +2411,7 @@ function renderCustomerCard(entry) {
   const statusName = entry.type === 'issue' ? entry.obj?.state?.name
                    : entry.type === 'project' ? projectStateLabel(entry.obj?.state) : null;
 
-  // Team badge: Product vs Engineering (issues only)
-  let teamBadgeHtml = '';
-  if (entry.type === 'issue') {
-    const isFbk = (entry.obj?.team?.name || '').toLowerCase().includes('feedback') || /fbk/i.test(entry.obj?.identifier || '');
-    const tl = isFbk ? 'Product' : 'Engineering';
-    const tc = isFbk
-      ? { bg: '#eef0fb', border: '#c7d2fe', color: '#4338ca' }
-      : { bg: '#f0fdf4', border: '#bbf7d0', color: '#166534' };
-    teamBadgeHtml = `<span style="font-size:11px;padding:1px 7px;border-radius:4px;font-weight:600;background:${tc.bg};border:1px solid ${tc.border};color:${tc.color}">${escHtml(tl)}</span>`;
-  }
+  const teamBadgeHtml = '';
 
   // Completed date (only when shipped)
   const isDone = entry.type === 'issue'
@@ -2434,23 +2445,28 @@ function renderCustomerCard(entry) {
     </div>`;
   }).join('');
 
+  const cardId = (entry.key || '').replace(/[^a-zA-Z0-9_-]/g, '-');
+  const isCardCollapsed = !expandedCustomerCards.has(cardId);
   return `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+      <div onclick="toggleCustomerCardBody('${cardId}')" style="padding:12px 16px;${isCardCollapsed ? '' : 'border-bottom:1px solid var(--border);'}cursor:pointer;user-select:none">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div style="min-width:0;flex:1">${titleHtml}</div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+          <div style="min-width:0;flex:1;display:flex;align-items:center;gap:6px">
+            <span id="cc-chev-${cardId}" style="font-size:10px;color:var(--text-muted);flex-shrink:0;transition:transform .15s${isCardCollapsed ? ';transform:rotate(-90deg)' : ''}">▼</span>
+            <div style="min-width:0;flex:1">${titleHtml}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end" onclick="event.stopPropagation()">
             ${teamBadgeHtml}
             ${statusChipHtml(statusName)}
             ${dateHtml}
           </div>
         </div>
-        ${(domainHtml || otherCountHtml) ? `<div style="margin-top:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        ${(domainHtml || otherCountHtml) ? `<div style="margin-top:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-left:16px">
           <div style="display:flex;gap:4px;flex-wrap:wrap">${domainHtml || ''}</div>
           ${otherCountHtml || ''}
         </div>` : ''}
       </div>
-      <div style="padding:8px 16px">
+      <div id="cc-body-${cardId}" style="padding:8px 16px${isCardCollapsed ? ';display:none' : ''}">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;padding:0 8px">What you said</div>
         <div style="display:flex;flex-direction:column;gap:2px">${needRows}</div>
       </div>
@@ -2516,7 +2532,40 @@ function renderCustomerView(needs) {
     if (bucketSorters[bid]) entries.sort(bucketSorters[bid]);
   }
 
-  const renderBucketBody = (entries) => {
+  const renderBucketBody = (entries, bucketId) => {
+    // Always-on status sub-sections for specific buckets (when no customerSubgroupBy override)
+    const BUCKET_STATUS_SUBSECTIONS = {
+      'researching': ['Now', 'Next'],
+      'on-radar':    ['Later', 'Icebox'],
+    };
+    if (!customerSubgroupBy && BUCKET_STATUS_SUBSECTIONS[bucketId]) {
+      const order = BUCKET_STATUS_SUBSECTIONS[bucketId];
+      const groups = new Map(order.map(l => [l.toLowerCase(), { label: l, entries: [] }]));
+      groups.set('__other__', { label: 'Other', entries: [] });
+      for (const e of entries) {
+        const s = (e.obj?.state?.name || '').toLowerCase();
+        const target = groups.has(s) ? groups.get(s) : groups.get('__other__');
+        target.entries.push(e);
+      }
+      const nonEmpty = [...groups.values()].filter(g => g.entries.length > 0);
+      // If everything is in one group (no real sub-division), render flat
+      if (nonEmpty.length <= 1) {
+        return `<div style="display:flex;flex-direction:column;gap:8px">${entries.map(e => renderCustomerCard(e)).join('')}</div>`;
+      }
+      return nonEmpty.map(g => {
+        const ssId = bucketId + '-' + g.label.toLowerCase().replace(/\s+/g, '-');
+        const isSSCollapsed = collapsedSubsections.has(ssId);
+        return `<div style="margin-bottom:16px">
+          <div onclick="toggleSubsection('${ssId}')" style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none">
+            <span id="ss-chev-${ssId}" style="font-size:9px;transition:transform .15s${isSSCollapsed ? ';transform:rotate(-90deg)' : ''}">▼</span>
+            ${escHtml(g.label)}
+            <span style="font-weight:400;opacity:.6">${g.entries.length}</span>
+          </div>
+          <div id="ss-body-${ssId}" style="${isSSCollapsed ? 'display:none' : 'display:flex'};flex-direction:column;gap:8px">${g.entries.map(e => renderCustomerCard(e)).join('')}</div>
+        </div>`;
+      }).join('');
+    }
+
     if (customerSubgroupBy === 'domain') {
       const buckets = new Map();
       for (const e of entries) {
@@ -2596,7 +2645,7 @@ function renderCustomerView(needs) {
           <span style="font-size:11px;color:var(--text-muted)">${entries.length} item${entries.length !== 1 ? 's' : ''}</span>
           <span style="font-size:11px;color:var(--text-muted);margin-left:auto;font-style:italic">${escHtml(bucket.note)}</span>
         </div>
-        <div id="cb-body-${bucket.id}" style="${isCollapsed ? 'display:none' : 'display:block'}">${renderBucketBody(entries)}</div>
+        <div id="cb-body-${bucket.id}" style="${isCollapsed ? 'display:none' : 'display:block'}">${renderBucketBody(entries, bucket.id)}</div>
       </div>`;
   }).join('');
 
