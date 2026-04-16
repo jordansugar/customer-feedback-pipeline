@@ -1,0 +1,6 @@
+# Credentials — never commit these
+config/integrations.json
+config/enterprise-accounts.json
+
+# macOS
+.DS_Store

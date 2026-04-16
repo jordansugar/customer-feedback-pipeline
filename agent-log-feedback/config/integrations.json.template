@@ -1,0 +1,13 @@
+{
+  "intercom": {
+    "access_token": "REPLACE_ME"
+  },
+  "salesforce": {
+    "instance_url": "https://REPLACE_ME.my.salesforce.com",
+    "client_id": "REPLACE_ME",
+    "client_secret": "REPLACE_ME",
+    "username": "REPLACE_ME",
+    "password": "REPLACE_ME",
+    "security_token": "REPLACE_ME"
+  }
+}

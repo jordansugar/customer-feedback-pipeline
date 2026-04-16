@@ -1,0 +1,25 @@
+{
+  "enterprise_feedback_tracker": {
+    "database_id": "REPLACE_ME",
+    "data_source_id": "REPLACE_ME"
+  },
+  "enterprise_account_pages": {
+    "parent_page_id": "REPLACE_ME"
+  },
+  "idempotency_db_id": "REPLACE_ME",
+  "idempotency_db_data_source": "collection://REPLACE_ME",
+  "jtbd_source": "REPLACE_ME",
+  "accounts": [
+    {
+      "name": "Account Name",
+      "notion_page_id": "REPLACE_ME",
+      "notion_page_url": "https://www.notion.so/REPLACE_ME",
+      "csm_slack_user_id": null,
+      "slack_channel": "#acct_accountname",
+      "slack_channel_id": "REPLACE_ME",
+      "linear_customer_id": null,
+      "idempotency_page_id": null,
+      "provisioned_date": "YYYY-MM-DD"
+    }
+  ]
+}
